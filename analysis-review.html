@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Review - FTA TOOLS</title>
+
+    <!-- Google Fonts: Inter & Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        aviation: {
+                            dark: '#0B1120',
+                            card: '#1E293B',
+                            accent: '#0EA5E9',
+                            cyan: '#06B6D4',
+                            danger: '#EF4444',
+                            warning: '#F59E0B',
+                            success: '#10B981',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Sarabun', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-cyan-500 selection:text-white bg-grid-pattern py-8 px-4 sm:px-6 lg:px-8">
+
+    <div class="app-page expert-page max-w-5xl mx-auto space-y-6">
+
+        <!-- HEADER -->
+        <header class="workspace-header flex flex-col sm:flex-row items-center justify-between p-4 md:p-5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-800 shadow-xl gap-4">
+            <div class="brand-area flex items-center space-x-3.5">
+                <div class="brand-icon w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xl shadow-lg shadow-cyan-500/20 shrink-0">
+                    ✈
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wider text-white">
+                        FTA <span class="text-cyan-400">TOOLS</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">
+                        Aviation Safety Analysis System
+                    </p>
+                </div>
+            </div>
+
+            <div class="role-pill inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-semibold text-cyan-400 tracking-wide">
+                <span class="status-dot w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>EXPERT</span>
+            </div>
+        </header>
+
+
+        <!-- PAGE INTRO -->
+        <section class="analysis-info analysis-review-header px-1 py-2">
+            <span class="page-kicker text-xs font-bold tracking-widest text-cyan-400 uppercase block mb-1">
+                FTA ANALYSIS REVIEW
+            </span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white">
+                Analysis Review
+            </h2>
+            <p class="text-xs md:text-sm text-slate-400 mt-1">
+                Review the Fault Tree and assign event probabilities before performing risk assessment.
+            </p>
+            <span class="thai-subtitle text-xs md:text-sm text-slate-400/80 block mt-0.5">
+                ตรวจสอบ Fault Tree และกำหนดค่าความน่าจะเป็น ก่อนเข้าสู่การประเมินความเสี่ยง
+            </span>
+        </section>
+
+
+        <!-- MAIN CONTENT -->
+        <main class="expert-content analysis-review-content space-y-6">
+
+            <!-- ANALYSIS INFORMATION -->
+            <section class="dashboard-card review-info-card bg-slate-900/80 backdrop-blur-md border border-slate-800 hover:border-slate-700/80 rounded-2xl p-6 shadow-xl transition-all">
+                <div class="review-section-heading flex items-center gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div class="review-heading-icon w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center font-bold text-cyan-400 shrink-0">
+                        i
+                    </div>
+                    <div>
+                        <span class="card-label text-[10px] font-bold tracking-widest text-slate-400 uppercase block">
+                            ANALYSIS
+                        </span>
+                        <h3 class="text-base md:text-lg font-bold text-white">
+                            Analysis Information
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="review-info-grid grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div class="review-info-item bg-slate-950/50 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-1">
+                        <span class="text-xs text-slate-400">Analysis Title</span>
+                        <strong id="analysisTitle" class="text-sm font-semibold text-white break-words">-</strong>
+                    </div>
+                    <div class="review-info-item bg-slate-950/50 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-1">
+                        <span class="text-xs text-slate-400">Top Event</span>
+                        <strong id="topEvent" class="text-sm font-semibold text-white break-words">-</strong>
+                    </div>
+                </div>
+
+                <div class="review-description bg-slate-950/50 border border-slate-800/80 rounded-xl p-4">
+                    <span class="text-xs text-slate-400 block mb-1">Description</span>
+                    <p id="description" class="text-xs md:text-sm text-slate-200 leading-relaxed">-</p>
+                </div>
+            </section>
+
+
+            <!-- FTA SUMMARY -->
+            <section class="dashboard-card bg-slate-900/80 backdrop-blur-md border border-slate-800 hover:border-slate-700/80 rounded-2xl p-6 shadow-xl transition-all">
+                <div class="review-section-heading flex items-center gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div class="review-heading-icon blue-heading-icon w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400 shrink-0">
+                        ◇
+                    </div>
+                    <div>
+                        <span class="card-label text-[10px] font-bold tracking-widest text-slate-400 uppercase block">
+                            FAULT TREE
+                        </span>
+                        <h3 class="text-base md:text-lg font-bold text-white">
+                            FTA Summary
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="review-summary-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="summary-metric bg-slate-950/50 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-1">
+                        <span class="text-xs text-slate-400">Number of Events</span>
+                        <strong id="eventCount" class="text-xl font-bold text-cyan-400">0</strong>
+                    </div>
+                    <div class="summary-metric bg-slate-950/50 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-1">
+                        <span class="text-xs text-slate-400">Main Gate</span>
+                        <strong id="gateType" class="text-xl font-bold text-cyan-400">-</strong>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- EVENTS -->
+            <section class="dashboard-card bg-slate-900/80 backdrop-blur-md border border-slate-800 hover:border-slate-700/80 rounded-2xl p-6 shadow-xl transition-all">
+                <div class="review-section-heading flex items-center gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div class="review-heading-icon cyan-heading-icon w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center font-bold text-cyan-400 shrink-0">
+                        ≡
+                    </div>
+                    <div>
+                        <span class="card-label text-[10px] font-bold tracking-widest text-slate-400 uppercase block">
+                            EVENT STRUCTURE
+                        </span>
+                        <h3 class="text-base md:text-lg font-bold text-white">
+                            Events in Fault Tree
+                        </h3>
+                    </div>
+                </div>
+
+                <!-- Dynamic Content Container -->
+                <div id="eventList" class="review-event-list space-y-3">
+                    <!-- Events will be dynamically injected here by JS -->
+                </div>
+            </section>
+
+
+            <!-- PROBABILITY ANALYSIS -->
+            <section class="dashboard-card probability-analysis-card bg-slate-900/80 backdrop-blur-md border border-slate-800 hover:border-slate-700/80 rounded-2xl p-6 shadow-xl transition-all">
+                <div class="review-section-heading flex items-center gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div class="review-heading-icon probability-heading-icon w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center font-bold text-cyan-400 shrink-0">
+                        %
+                    </div>
+                    <div>
+                        <span class="card-label text-[10px] font-bold tracking-widest text-slate-400 uppercase block">
+                            CALCULATION INPUT
+                        </span>
+                        <h3 class="text-base md:text-lg font-bold text-white">
+                            Probability Analysis
+                        </h3>
+                        <span class="thai-card-title text-xs font-normal text-slate-400 block">
+                            การกำหนดค่าความน่าจะเป็น
+                        </span>
+                    </div>
+                </div>
+
+                <div class="probability-intro flex gap-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-4 mb-6">
+                    <div class="probability-info-icon w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        i
+                    </div>
+                    <div class="space-y-1">
+                        <strong class="text-sm font-bold text-cyan-200 block">Event Probability</strong>
+                        <p class="text-xs text-slate-300">Enter the probability of each event for the FTA calculation.</p>
+                        <span class="text-[11px] text-slate-400 block">สามารถกรอกค่าเป็นตัวเลขทศนิยม เช่น 0.001 หรือ 1.5e-3</span>
+                    </div>
+                </div>
+
+                <!-- EVENT INPUTS CONTAINER -->
+                <div id="probabilityList" class="probability-list space-y-4 mb-6">
+                    <!-- Probability inputs injected here by JS -->
+                </div>
+
+                <!-- CALCULATE ACTION -->
+                <div class="probability-action flex justify-end">
+                    <button id="calculateBtn" class="primary-btn probability-calculate-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold tracking-wider text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-950/50 transition-all transform hover:-translate-y-0.5" type="button">
+                        <span>CALCULATE FTA</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </section>
+
+
+            <!-- RESULT (Hidden by default, shown via JS) -->
+            <section id="resultCard" class="dashboard-card fta-result-card bg-slate-900/90 backdrop-blur-md border border-cyan-500/40 rounded-2xl p-6 shadow-2xl transition-all space-y-6" style="display:none;">
+                <div class="result-success-header flex items-center gap-4 pb-4 border-b border-slate-800">
+                    <div class="result-success-icon w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-lg shrink-0">
+                        ✓
+                    </div>
+                    <div>
+                        <span class="card-label text-[10px] font-bold tracking-widest text-emerald-400 uppercase block">
+                            CALCULATION COMPLETE
+                        </span>
+                        <h3 class="text-base md:text-lg font-bold text-white">
+                            FTA Analysis Result
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="result-metric-grid grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="result-metric bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col gap-1">
+                        <span class="text-xs text-slate-400">Main Gate</span>
+                        <strong id="resultGate" class="text-sm font-semibold text-white break-words">-</strong>
+                    </div>
+                    <div class="result-metric probability-result-metric bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col gap-1">
+                        <span class="text-xs text-slate-400">Top Event Probability</span>
+                        <strong id="topProbability" class="text-base font-bold text-cyan-400 break-words">-</strong>
+                    </div>
+                    <div class="result-metric bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col gap-1">
+                        <span class="text-xs text-slate-400">Probability (%)</span>
+                        <strong id="topPercentage" class="text-base font-bold text-cyan-400 break-words">-</strong>
+                    </div>
+                </div>
+
+                <div id="calculationMessage" class="calculation-message text-xs md:text-sm text-slate-300 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80">
+                    <!-- Message from JS -->
+                </div>
+
+                <div class="flex justify-end">
+                    <button id="riskBtn" class="primary-btn proceed-risk-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold tracking-wider text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-950/50 transition-all transform hover:-translate-y-0.5" type="button">
+                        <span>PROCEED TO RISK ASSESSMENT</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </section>
+
+
+            <!-- SYSTEM STATUS -->
+            <section class="dashboard-card review-status-card bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-6 shadow-xl flex items-start gap-4">
+                <div class="status-card-icon w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold text-lg shrink-0">
+                    ✓
+                </div>
+                <div class="space-y-1">
+                    <span class="card-label text-[10px] font-bold tracking-widest text-slate-400 uppercase block">
+                        SYSTEM STATUS
+                    </span>
+                    <h3 class="text-base font-bold text-white">
+                        Analysis Status
+                    </h3>
+                    <p id="reviewStatus" class="text-xs md:text-sm text-slate-400">
+                        Checking analysis...
+                    </p>
+                </div>
+            </section>
+
+        </main>
+
+
+        <!-- TOOLBAR -->
+        <section class="toolbar analysis-review-toolbar flex flex-col sm:flex-row-reverse justify-between gap-4 pt-2">
+            <button id="confirmAnalysisBtn" class="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold tracking-wider text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-950/50 transition-all transform hover:-translate-y-0.5" type="button">
+                CONFIRM ANALYSIS
+            </button>
+            <button id="backBtn" class="secondary-btn w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-semibold tracking-wider text-slate-300 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 transition-all shadow-md" type="button">
+                ← BACK
+            </button>
+        </section>
+
+    </div>
+
+    <script src="analysis-review.js"></script>
+
+</body>
+
+</html>

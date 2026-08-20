@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Calculator - FTA TOOLS</title>
+
+    <!-- Google Fonts: Noto Sans Thai -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        aviation: {
+                            dark: '#0B1120',
+                            card: '#1E293B',
+                            accent: '#0EA5E9',
+                            cyan: '#06B6D4',
+                            sky: '#38BDF8',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans Thai"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        /* =====================================================
+           RISK MATRIX - DISPLAY ONLY
+           This page doesn't load the shared style.css, so matrix
+           sizing/behavior is fully self-contained here.
+           ===================================================== */
+        .risk-matrix {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            display: grid !important;
+            grid-template-columns: 70px repeat(5, minmax(70px, 1fr)) !important;
+            gap: 6px !important;
+            align-items: stretch;
+            justify-content: center;
+            padding: 8px 4px 12px;
+        }
+
+        .risk-matrix .matrix-cell {
+            min-width: 55px;
+            min-height: 48px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 8px;
+            border: 1px solid #334155 !important;
+            border-radius: 8px;
+            background: #111827 !important;
+            color: #cbd5e1 !important;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        /* Pin the "L / S" corner + likelihood row labels so they stay
+           visible while the matrix scrolls horizontally on phones. */
+        .risk-matrix .matrix-cell:nth-child(6n + 1) {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            box-shadow: 3px 0 6px -3px rgba(0, 0, 0, 0.35);
+        }
+
+        @media (max-width: 640px) {
+            .risk-matrix {
+                /* Wider min-track than the letter-coded matrix on the
+                   Risk Assessment page: cell text here is a full word
+                   (LOW / MEDIUM / HIGH / SPECIAL), so columns need more
+                   room and are allowed to wrap to two lines. */
+                grid-template-columns: 32px repeat(5, minmax(50px, 1fr)) !important;
+                gap: 3px !important;
+            }
+
+            .risk-matrix .matrix-cell {
+                min-width: 0;
+                min-height: 40px;
+                padding: 5px 2px;
+                font-size: 9px;
+                line-height: 1.05;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
+        }
+
+        .risk-matrix .matrix-header {
+            background: #0f172a !important;
+            border-color: #475569 !important;
+            color: #94a3b8 !important;
+            font-weight: 800;
+        }
+
+        .risk-matrix .risk-low-cell {
+            background: rgba(34, 197, 94, 0.16) !important;
+            border-color: rgba(34, 197, 94, 0.45) !important;
+            color: #4ade80 !important;
+        }
+
+        .risk-matrix .risk-medium-cell {
+            background: rgba(234, 179, 8, 0.16) !important;
+            border-color: rgba(234, 179, 8, 0.45) !important;
+            color: #facc15 !important;
+        }
+
+        .risk-matrix .risk-high-cell {
+            background: rgba(249, 115, 22, 0.16) !important;
+            border-color: rgba(249, 115, 22, 0.45) !important;
+            color: #fb923c !important;
+        }
+
+        .risk-matrix .risk-special-cell {
+            background: rgba(239, 68, 68, 0.16) !important;
+            border-color: rgba(239, 68, 68, 0.45) !important;
+            color: #f87171 !important;
+        }
+
+        .risk-matrix .selected-risk {
+            outline: 2px solid #38bdf8 !important;
+            outline-offset: 1px;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-cyan-500 selection:text-white bg-grid-pattern relative pb-12">
+
+    <!-- BACKGROUND GLOW EFFECTS -->
+    <div class="fixed top-[-10rem] right-[-10rem] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed bottom-[-10rem] left-[-10rem] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="app-page expert-page max-w-5xl mx-auto px-4 sm:px-6 relative z-10 space-y-8">
+
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
+        <header class="workspace-header pt-6 pb-4 flex items-center justify-between border-b border-slate-800/80">
+
+            <div class="brand-area flex items-center space-x-3.5">
+                <div class="brand-icon w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-lg shadow-lg shadow-cyan-500/20 shrink-0">
+                    ✈
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-wider text-white leading-tight">
+                        FTA <span class="text-cyan-400">TOOLS</span>
+                    </h1>
+                    <p class="text-[10px] text-slate-400 tracking-wide">
+                        Aviation Safety Analysis System
+                    </p>
+                </div>
+            </div>
+
+            <div class="role-pill inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-[10px] font-bold text-blue-400 tracking-wider">
+                <span class="status-dot w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                <span>EXPERT</span>
+            </div>
+
+        </header>
+
+
+        <!-- =====================================================
+             PAGE INTRO
+             ===================================================== -->
+        <section class="analysis-info calculator-page-header space-y-2">
+
+            <span class="page-kicker inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-extrabold tracking-widest uppercase">
+                QUICK RISK TOOL
+            </span>
+
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Risk Calculator
+            </h2>
+
+            <p class="text-sm text-slate-300">
+                Calculate the risk level using Probability × Severity.
+            </p>
+
+            <span class="thai-subtitle block text-xs text-slate-400 font-normal">
+                คำนวณระดับความเสี่ยงจากโอกาสเกิด × ความรุนแรง
+            </span>
+
+        </section>
+
+
+        <!-- =====================================================
+             MAIN CONTENT
+             ===================================================== -->
+        <main class="expert-content risk-calculator-content space-y-6">
+
+            <!-- =================================================
+                 INPUT GRID
+                 ================================================= -->
+            <section class="calculator-input-grid grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
+
+                <!-- PROBABILITY CARD -->
+                <div class="dashboard-card calculator-input-card md:col-span-5 bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-4">
+
+                    <div class="calculator-input-heading flex items-center space-x-3">
+                        <div class="calculator-number w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center font-black text-base shrink-0">
+                            P
+                        </div>
+                        <div>
+                            <span class="card-label text-[10px] font-extrabold tracking-widest text-slate-400 uppercase block">
+                                PROBABILITY
+                            </span>
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                Probability
+                            </h3>
+                            <span class="thai-card-title text-xs text-slate-400">
+                                โอกาสเกิด
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-400">
+                        Select the probability level.
+                    </p>
+
+                    <select id="calculatorProbability" class="calculator-select w-full bg-slate-950/80 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none transition-all cursor-pointer">
+                        <option value="">Select Probability</option>
+                        <option value="5">5</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1</option>
+                    </select>
+
+                </div>
+
+                <!-- MULTIPLY OPERATOR -->
+                <div class="calculator-operation md:col-span-1 text-center py-2 md:py-0 text-2xl font-black text-cyan-400 opacity-60">
+                    ×
+                </div>
+
+                <!-- SEVERITY CARD -->
+                <div class="dashboard-card calculator-input-card md:col-span-5 bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-4">
+
+                    <div class="calculator-input-heading flex items-center space-x-3">
+                        <div class="calculator-number severity-calculator-number w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center font-black text-base shrink-0">
+                            S
+                        </div>
+                        <div>
+                            <span class="card-label text-[10px] font-extrabold tracking-widest text-slate-400 uppercase block">
+                                SEVERITY
+                            </span>
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                Severity
+                            </h3>
+                            <span class="thai-card-title text-xs text-slate-400">
+                                ความรุนแรง
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-400">
+                        Select the severity level.
+                    </p>
+
+                    <select id="calculatorSeverity" class="calculator-select w-full bg-slate-950/80 border border-slate-800 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none transition-all cursor-pointer">
+                        <option value="">Select Severity</option>
+                        <option value="5">5</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1</option>
+                    </select>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 FORMULA
+                 ================================================= -->
+            <section class="calculator-formula bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 text-center space-y-1">
+                <span class="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase block">
+                    RISK SCORE
+                </span>
+                <strong class="text-base font-bold text-cyan-400 tracking-wide block">
+                    Probability × Severity
+                </strong>
+                <small class="text-xs text-slate-400 block font-normal">
+                    คะแนนความเสี่ยง = โอกาสเกิด × ความรุนแรง
+                </small>
+            </section>
+
+
+            <!-- =================================================
+                 RESULT
+                 ================================================= -->
+            <section class="dashboard-card calculator-result-card bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-6">
+
+                <div class="calculator-result-header flex items-center justify-between">
+                    <div>
+                        <span class="card-label text-[10px] font-extrabold tracking-widest text-slate-400 uppercase block">
+                            CALCULATION RESULT
+                        </span>
+                        <h3 class="text-lg font-bold text-white leading-snug">
+                            Risk Result
+                        </h3>
+                    </div>
+                    <div class="calculator-result-icon w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-xl shrink-0">
+                        =
+                    </div>
+                </div>
+
+                <div class="calculator-result-grid grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+                    <div class="calculator-result-item bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl flex flex-col justify-between space-y-1">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Probability</span>
+                        <strong id="calculatorProbabilityResult" class="text-lg font-bold text-slate-200 font-mono">-</strong>
+                    </div>
+
+                    <div class="calculator-result-item bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl flex flex-col justify-between space-y-1">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Severity</span>
+                        <strong id="calculatorSeverityResult" class="text-lg font-bold text-slate-200 font-mono">-</strong>
+                    </div>
+
+                    <div class="calculator-result-item score-result bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl flex flex-col justify-between space-y-1">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Risk Score</span>
+                        <strong id="calculatorScore" class="text-xl font-black text-cyan-400 font-mono">-</strong>
+                    </div>
+
+                    <div class="calculator-result-item level-result bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl flex flex-col justify-between space-y-1">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Risk Level</span>
+                        <strong id="calculatorLevel" class="text-lg font-bold text-slate-200 font-mono">-</strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 MATRIX
+                 ================================================= -->
+            <section class="dashboard-card calculator-matrix-card bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-4">
+
+                <div class="calculator-result-header flex items-center justify-between">
+                    <div>
+                        <span class="card-label text-[10px] font-extrabold tracking-widest text-slate-400 uppercase block">
+                            RISK MATRIX
+                        </span>
+                        <h3 class="text-lg font-bold text-white leading-snug">
+                            Risk Matrix
+                        </h3>
+                        <span class="thai-card-title text-xs text-slate-400">
+                            ตารางระดับความเสี่ยง
+                        </span>
+                    </div>
+
+                    <div class="matrix-mini-label px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono text-xs font-bold">
+                        P × S
+                    </div>
+                </div>
+
+                <!-- Container สำหรับแสดง Matrix dynamically จาก JS -->
+                <div id="calculatorMatrix" class="risk-matrix overflow-x-auto min-h-[200px] flex items-center justify-center text-slate-500 text-xs">
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- =====================================================
+             TOOLBAR
+             ===================================================== -->
+        <section class="toolbar calculator-toolbar flex items-center justify-end space-x-3 pt-4 border-t border-slate-800/80">
+
+            <button id="backBtn" class="secondary-btn px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold tracking-wider transition-all active:scale-95 cursor-pointer" type="button">
+                BACK
+            </button>
+
+            <button id="saveCalculatorBtn" class="primary-btn px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25 border border-cyan-400/30 text-xs font-bold tracking-wider transition-all active:scale-95 cursor-pointer" type="button">
+                SAVE RESULT
+            </button>
+
+        </section>
+
+    </div>
+
+    <!-- External Risk Calculator Logic File -->
+    <script src="risk-calculator.js"></script>
+
+</body>
+
+</html>
