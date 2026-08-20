@@ -110,7 +110,11 @@ textarea:focus-visible, select:focus-visible {
     display: flex;
     flex-direction: column;
     padding: 20px 14px;
-    z-index: 30;
+    /* Above the mobile drawer scrim and the sticky bottom action bar —
+       when the drawer is open on a form page it must sit on top of
+       .ui-sticky-actions (also fixed to the bottom), not underneath it,
+       or the "switch role" pill becomes unclickable. */
+    z-index: 50;
 }
 
 .sidebar-brand {
