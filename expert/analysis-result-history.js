@@ -1198,6 +1198,71 @@ function renderRecord(
 }
 
 
+// Per-record summary used by the history table (Highest Risk / Overall
+// Acceptability / FTA Probability) — reuses the exact same helpers that
+// power the full per-record breakdown (getTargets/getRiskMap/etc.), just
+// without rendering the full embedded table for every record anymore.
+function computeRecordSummary(record) {
+
+    const targets = getTargets(record);
+    const riskMap = getRiskMap(record);
+
+    const assessments =
+        Array.from(riskMap.values()).filter(function (item) {
+            return item?.eventId && item.eventId !== "TOP_EVENT";
+        });
+
+    const completed =
+        targets.filter(function (target) {
+            return riskMap.has(String(target.id));
+        }).length;
+
+    const total = targets.length;
+
+    return {
+        total,
+        completed,
+        highest: getHighestRisk(assessments),
+        overall: getOverallAcceptability(assessments, total, completed),
+        probability: getFTAProbability(record)
+    };
+}
+
+const RESULT_STATUS_LABELS = {
+    DRAFT: "แบบร่าง",
+    PENDING_EXPERT: "รอผู้เชี่ยวชาญ",
+    UNDER_ANALYSIS: "กำลังวิเคราะห์",
+    COMPLETED: "เสร็จสมบูรณ์"
+};
+
+const RESULT_STATUS_BADGE_CLASS = {
+    DRAFT: "status-badge-slate",
+    PENDING_EXPERT: "status-badge-amber",
+    UNDER_ANALYSIS: "status-badge-blue",
+    COMPLETED: "status-badge-green"
+};
+
+const RISK_BADGE_CLASS = {
+    SPECIAL: "status-badge-red",
+    HIGH: "status-badge-red",
+    MEDIUM: "status-badge-amber",
+    LOW: "status-badge-green"
+};
+
+function resultStatusBadgeHtml(status) {
+    const cls = RESULT_STATUS_BADGE_CLASS[status] || "status-badge-slate";
+    const label = RESULT_STATUS_LABELS[status] || status || "-";
+    return `<span class="status-badge ${cls}">${escapeHtml(label)}</span>`;
+}
+
+function riskBadgeHtml(level) {
+    if (!level || level === "-") return `<span class="status-badge status-badge-slate">-</span>`;
+    const cls = RISK_BADGE_CLASS[level] || "status-badge-slate";
+    return `<span class="status-badge ${cls}">${escapeHtml(level)}</span>`;
+}
+
+let resultHistoryTable = null;
+
 function renderHistory() {
 
     const container =
@@ -1285,11 +1350,9 @@ function renderHistory() {
     }
 
 
-    container.innerHTML =
-        "";
-
-
     if (!records.length) {
+
+        container.innerHTML = "";
 
         if (empty) {
             empty.classList.remove(
@@ -1310,23 +1373,102 @@ function renderHistory() {
 
     }
 
+    const withSummary = records.map(function (record) {
+        return Object.assign({}, record, { __summary: computeRecordSummary(record) });
+    });
 
-    records.forEach(
-        function(
-            record,
-            index
-        ) {
+    const filterOptions = Array.from(
+        new Set(withSummary.map(r => r.status || "DRAFT"))
+    ).map(value => ({ value, label: RESULT_STATUS_LABELS[value] || value }));
 
-            container.insertAdjacentHTML(
-                "beforeend",
-                renderRecord(
-                    record,
-                    index
-                )
-            );
-
+    const columns = [
+        {
+            key: "analysisTitle", label: "หัวข้อการวิเคราะห์",
+            cellHtml: r => `
+                <div style="font-weight:800;color:var(--ink);">${escapeHtml(r.analysisTitle || "Untitled Analysis")}</div>
+                <div style="color:var(--muted);font-size:11px;margin-top:2px;">${escapeHtml(r.topEvent || "-")}</div>
+            `
+        },
+        { key: "department", label: "แผนก/พื้นที่", cellHtml: r => escapeHtml(r.department || "-") },
+        { key: "status", label: "สถานะ", cellHtml: r => resultStatusBadgeHtml(r.status) },
+        { key: "highest", label: "Highest Risk", cellHtml: r => riskBadgeHtml(r.__summary.highest) },
+        { key: "probability", label: "FTA Probability", cellHtml: r => escapeHtml(r.__summary.probability) },
+        {
+            key: "date", label: "วันที่",
+            cellHtml: r => escapeHtml(formatDateTime(r.historySavedAt || r.completedAt || r.updatedAt || r.createdAt))
         }
-    );
+    ];
+
+    const config = {
+        columns,
+        rows: withSummary,
+        searchKeys: ["analysisTitle", "topEvent", "department"],
+        searchPlaceholder: "ค้นหาหัวข้อ, Top Event หรือแผนก...",
+        filterKey: "status",
+        filterOptions,
+        pageSize: 8,
+        emptyMessage: "ยังไม่มีผลการวิเคราะห์ที่บันทึกไว้",
+        rowMeta: r => ({
+            icon: Icon("chart", "", 16),
+            title: r.analysisTitle || "Untitled Analysis",
+            subtitle: `${r.topEvent || "-"} · ${r.department || "-"}`,
+            badgeHtml: riskBadgeHtml(r.__summary.highest)
+        }),
+        onRowClick: r => { window.location.href = "analysis-result.html?id=" + encodeURIComponent(r.id); },
+        rowActions: r => [
+            {
+                label: "ดูรายละเอียด", icon: Icon("eye", "", 12), variant: "primary",
+                onClick: rec => { window.location.href = "analysis-result.html?id=" + encodeURIComponent(rec.id); }
+            },
+            { label: "ลบ", icon: Icon("trash", "", 12), variant: "danger", onClick: deleteResultRecord }
+        ]
+    };
+
+    if (resultHistoryTable) {
+        resultHistoryTable.setRows(withSummary);
+    } else {
+        resultHistoryTable = renderDataTable(container, config);
+    }
+
+}
+
+
+async function deleteResultRecord(record) {
+
+    const id = String(record?.id || "");
+    if (!id) return;
+
+    const confirmed = await Notify.confirmDelete({
+        title: "ลบผลการวิเคราะห์นี้จากประวัติ?",
+        text: "การลบนี้จะนำรายการออกจากประวัติในเบราว์เซอร์นี้อย่างถาวร"
+    });
+
+    if (!confirmed) return;
+
+    const records = readRecords();
+
+    const filtered = records.filter(function (raw) {
+        const recordId = String(raw?.id ?? raw?.analysisData?.id ?? "");
+        return recordId !== id;
+    });
+
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(filtered));
+
+    [localStorage, sessionStorage].forEach(function (storage) {
+        try {
+            const raw = storage.getItem("ftaAnalysisData");
+            if (!raw) return;
+            const current = JSON.parse(raw);
+            if (String(current?.id || "") === id) {
+                storage.removeItem("ftaAnalysisData");
+            }
+        } catch (error) {
+            console.warn("Unable to clear current analysis:", error);
+        }
+    });
+
+    Notify.toast("ลบรายการเรียบร้อยแล้ว");
+    renderHistory();
 
 }
 
@@ -1538,7 +1680,7 @@ if (exportExcelBtn) {
                 "undefined"
             ) {
 
-                window.alert(
+                Notify.error(
                     "ไม่สามารถโหลดไลบรารี Excel ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่"
                 );
 
@@ -1554,7 +1696,7 @@ if (exportExcelBtn) {
 
             if (!rows.length) {
 
-                window.alert(
+                Notify.error(
                     "ไม่มีข้อมูล Basic Events ให้ Export"
                 );
 
@@ -1635,152 +1777,6 @@ if (exportExcelBtn) {
     );
 
 }
-
-
-document.addEventListener(
-    "click",
-    function(event) {
-
-        const button =
-            event.target.closest(
-                ".delete-result-btn"
-            );
-
-        if (!button) {
-            return;
-        }
-
-        const id =
-            String(
-                button.dataset.id ||
-                ""
-            );
-
-        if (!id) {
-            return;
-        }
-
-        const confirmed =
-            window.confirm(
-                "Delete this Analysis Result from History?\n\nThis will remove the saved Analysis record from this browser."
-            );
-
-        if (!confirmed) {
-            return;
-        }
-
-        const records =
-            readRecords();
-
-        const filtered =
-            records.filter(
-                function(record) {
-
-                    const recordId =
-                        String(
-                            record?.id ??
-                            record?.analysisData?.id ??
-                            ""
-                        );
-
-                    return (
-                        recordId !== id
-                    );
-
-                }
-            );
-
-        localStorage.setItem(
-            RECORDS_KEY,
-            JSON.stringify(
-                filtered
-            )
-        );
-
-        // Clear canonical current analysis only when it is the
-        // same Analysis that was deleted.
-        try {
-
-            const currentRaw =
-                localStorage.getItem(
-                    "ftaAnalysisData"
-                );
-
-            if (currentRaw) {
-
-                const current =
-                    JSON.parse(
-                        currentRaw
-                    );
-
-                if (
-                    String(
-                        current?.id ||
-                        ""
-                    ) === id
-                ) {
-
-                    localStorage.removeItem(
-                        "ftaAnalysisData"
-                    );
-
-                }
-
-            }
-
-        }
-        catch (error) {
-
-            console.warn(
-                "Unable to clear local current analysis:",
-                error
-            );
-
-        }
-
-        try {
-
-            const sessionRaw =
-                sessionStorage.getItem(
-                    "ftaAnalysisData"
-                );
-
-            if (sessionRaw) {
-
-                const currentSession =
-                    JSON.parse(
-                        sessionRaw
-                    );
-
-                if (
-                    String(
-                        currentSession?.id ||
-                        ""
-                    ) === id
-                ) {
-
-                    sessionStorage.removeItem(
-                        "ftaAnalysisData"
-                    );
-
-                }
-
-            }
-
-        }
-        catch (error) {
-
-            console.warn(
-                "Unable to clear session current analysis:",
-                error
-            );
-
-        }
-
-        renderHistory();
-
-    }
-);
 
 
 const refreshBtn =

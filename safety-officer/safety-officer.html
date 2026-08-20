@@ -1,333 +1,158 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safety Officer - JorproA</title>
+    <title>Dashboard - Safety Officer | JorproA</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../theme.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        jorpro: {
-                            ink: '#101828', slate: '#475467', mute: '#8A94A6',
-                            canvas: '#F3F5F9', surface: '#FFFFFF', line: '#E2E7EF',
-                            blue: '#123E7C', blueMid: '#2A5FAE', blueBright: '#2E6FE0',
-                            red: '#C21F2E', redDim: '#F6E4E5', redLight: '#FF97A0',
-                        }
-                    },
-                    fontFamily: {
-                        display: ['"Noto Sans Thai"', 'sans-serif'],
-                        sans: ['"Noto Sans Thai"', 'sans-serif'],
-                        mono: ['"IBM Plex Mono"', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .strip-topbar { background: #C21F2E; }
-        body { padding-top: 3px; }
-        button:focus-visible, select:focus-visible, input:focus-visible,
-        textarea:focus-visible, a:focus-visible {
-            outline: 2px solid #2E6FE0;
-            outline-offset: 2px;
-        }
-
-        /* =====================================================
-           PREMIUM POLISH TOKENS
-           Soft, brand-tinted, layered shadows + a slower "ease-out
-           expo" curve read as more deliberate/expensive than the
-           default linear/ease transitions.
-           ===================================================== */
-        .surface-shadow {
-            box-shadow:
-                0 1px 2px rgba(16, 24, 40, 0.04),
-                0 14px 32px -12px rgba(16, 24, 40, 0.12);
-        }
-        .surface-shadow-hover:hover {
-            box-shadow:
-                0 1px 2px rgba(16, 24, 40, 0.05),
-                0 24px 44px -14px rgba(18, 62, 124, 0.22);
-        }
-        .glow-shadow-blue {
-            box-shadow:
-                0 1px 2px rgba(18, 62, 124, 0.16),
-                0 12px 26px -8px rgba(18, 62, 124, 0.38);
-        }
-        .premium-ease {
-            transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .ring-sheen {
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-        }
-        @keyframes gentleFloatIcon {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-jorpro-canvas text-jorpro-ink font-sans min-h-screen antialiased selection:bg-jorpro-blueBright selection:text-white jorpro-page">
+<body>
 
-    <div class="strip-topbar w-full h-[3px] fixed top-0 left-0 right-0 z-50"></div>
+    <div class="app-shell">
 
+        <div class="main-area">
 
-    <!-- JORPROA BACKGROUND CLOUDS -->
-    <div class="jorpro-clouds" aria-hidden="true">
-        <div class="jorpro-cloud jorpro-cloud-a"></div>
-        <div class="jorpro-cloud jorpro-cloud-b"></div>
-        <div class="jorpro-cloud jorpro-cloud-c hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-d hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-e hidden lg:block"></div>
+            <header class="topbar" id="appTopbar"></header>
+
+            <main class="main-content" id="pageContent">
+
+                <div class="ui-card ui-card-pad" style="margin-bottom:20px;">
+                    <span class="ui-eyebrow">SAFETY OPERATIONS CENTER</span>
+                    <h1 class="ui-h1">สวัสดี, Safety Officer</h1>
+                    <p class="ui-sub">ภาพรวมงานวิเคราะห์ Fault Tree ทั้งหมดของคุณ</p>
+                </div>
+
+                <div class="ui-stat-row" style="margin-bottom:20px;">
+                    <div class="ui-stat-tile">
+                        <span class="ui-stat-label">ทั้งหมด</span>
+                        <div class="ui-stat-value" id="statTotal">0</div>
+                    </div>
+                    <div class="ui-stat-tile">
+                        <span class="ui-stat-label">แบบร่าง</span>
+                        <div class="ui-stat-value" id="statDraft">0</div>
+                    </div>
+                    <div class="ui-stat-tile">
+                        <span class="ui-stat-label">รอผู้เชี่ยวชาญ</span>
+                        <div class="ui-stat-value" id="statPending">0</div>
+                    </div>
+                    <div class="ui-stat-tile">
+                        <span class="ui-stat-label">เสร็จสมบูรณ์</span>
+                        <div class="ui-stat-value" id="statCompleted">0</div>
+                    </div>
+                </div>
+
+                <div class="ui-card ui-card-pad" style="margin-bottom:20px;">
+                    <div class="ui-card-header" style="border:none;margin:0;padding:0;">
+                        <div>
+                            <span class="ui-eyebrow">เริ่มต้นใช้งาน</span>
+                            <h2 class="ui-h2">การดำเนินการด่วน</h2>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;">
+                        <button id="newAnalysisBtn" type="button" class="ui-btn ui-btn-primary">
+                            <span id="icoPlus"></span> สร้างการวิเคราะห์ใหม่
+                        </button>
+                        <button id="historyBtn" type="button" class="ui-btn ui-btn-secondary">
+                            <span id="icoHistory"></span> ดูประวัติการวิเคราะห์
+                        </button>
+                        <button id="analysisResultBtn" type="button" class="ui-btn ui-btn-secondary">
+                            <span id="icoResult"></span> ผลการวิเคราะห์ล่าสุด
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ui-card ui-card-pad">
+                    <div class="ui-card-header">
+                        <div>
+                            <span class="ui-eyebrow">RECENT</span>
+                            <h2 class="ui-h2">การวิเคราะห์ล่าสุด</h2>
+                        </div>
+                        <a href="analysis-history.html" class="ui-btn ui-btn-ghost ui-btn-sm">ดูทั้งหมด</a>
+                    </div>
+                    <div id="recentList"></div>
+                </div>
+
+            </main>
+
+        </div>
+
     </div>
 
+    <script src="../icons.js"></script>
+    <script src="../notify.js"></script>
+    <script src="../shell.js"></script>
+    <script>
+        Shell.mount({ role: "safety-officer", active: "dashboard", title: "Dashboard" });
+        document.getElementById("icoPlus").innerHTML = Icon("plus", "", 16);
+        document.getElementById("icoHistory").innerHTML = Icon("list", "", 16);
+        document.getElementById("icoResult").innerHTML = Icon("file-text", "", 16);
 
+        (function renderDashboardStats() {
+            var records = [];
+            try {
+                var raw = JSON.parse(localStorage.getItem("ftaAnalysisRecords"));
+                records = Array.isArray(raw) ? raw : [];
+            } catch (e) { records = []; }
 
-    <div class="min-h-screen flex flex-col p-4 md:p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
+            var counts = { DRAFT: 0, PENDING_EXPERT: 0, UNDER_ANALYSIS: 0, COMPLETED: 0 };
+            records.forEach(function (r) {
+                var status = (r && (r.status || (r.analysisData && r.analysisData.status))) || "DRAFT";
+                if (counts[status] === undefined) counts[status] = 0;
+                counts[status]++;
+            });
 
-        <!-- =====================================================
-             HEADER
-             ===================================================== -->
-        <header class="surface-shadow ring-sheen flex flex-col sm:flex-row items-center justify-between p-4 rounded-2xl bg-white backdrop-blur-md border border-jorpro-line gap-4">
+            document.getElementById("statTotal").textContent = records.length;
+            document.getElementById("statDraft").textContent = counts.DRAFT;
+            document.getElementById("statPending").textContent = counts.PENDING_EXPERT + counts.UNDER_ANALYSIS;
+            document.getElementById("statCompleted").textContent = counts.COMPLETED;
 
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center glow-shadow-blue">
-                    <img src="../logo-icon.png" alt="JorproA logo" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-jorpro-ink">
-                        Jorpro<span class="text-jorpro-blue">A</span>
-                    </h1>
-                    <p class="text-xs text-jorpro-mute">
-                        Aviation Safety Analysis System
-                    </p>
-                </div>
-            </div>
+            var list = document.getElementById("recentList");
+            var recent = records.slice(0, 5);
 
-            <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-jorpro-canvas border border-jorpro-line text-xs font-semibold text-jorpro-slate">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_0_3px_rgba(52,211,153,0.18)]"></span>
-                <span>SAFETY OFFICER</span>
-            </div>
+            if (!recent.length) {
+                list.innerHTML = '<div class="dt-empty">ยังไม่มีการวิเคราะห์ — เริ่มสร้างรายการแรกของคุณ</div>';
+                return;
+            }
 
-        </header>
+            function esc(v) {
+                return String(v == null ? "" : v)
+                    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            }
 
+            var STATUS_LABEL = { DRAFT: "แบบร่าง", PENDING_EXPERT: "รอผู้เชี่ยวชาญ", UNDER_ANALYSIS: "กำลังวิเคราะห์", COMPLETED: "เสร็จสมบูรณ์" };
+            var STATUS_CLASS = { DRAFT: "status-badge-slate", PENDING_EXPERT: "status-badge-amber", UNDER_ANALYSIS: "status-badge-blue", COMPLETED: "status-badge-green" };
 
-        <!-- =====================================================
-             MAIN CONTENT
-             ===================================================== -->
-        <main class="space-y-8">
-
-            <!-- PAGE INTRO -->
-            <section class="surface-shadow ring-sheen flex flex-col md:flex-row items-start md:items-center justify-between bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 gap-6">
-
-                <div class="space-y-1.5">
-                    <span class="text-xs font-bold tracking-widest text-jorpro-blue uppercase block">
-                        SAFETY OPERATIONS CENTER
-                    </span>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink tracking-tight">
-                        Safety Officer
-                    </h2>
-                    <p class="text-sm text-jorpro-slate">
-                        Manage and perform Fault Tree Analysis
-                    </p>
-                    <span class="block text-xs text-jorpro-mute">
-                        จัดการและดำเนินการวิเคราะห์ความปลอดภัย
-                    </span>
-                </div>
-
-                <div class="shrink-0 self-center md:self-auto">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-jorpro-blue/15 to-jorpro-blue/5 border border-jorpro-blue/25 text-jorpro-blue flex items-center justify-center text-xl font-bold glow-shadow-blue"
-                         style="animation: gentleFloatIcon 3.2s cubic-bezier(0.45,0,0.55,1) infinite;">
-                        ✓
-                    </div>
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 DASHBOARD CARDS GRID
-                 ================================================= -->
-            <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-                <!-- NEW ANALYSIS CARD -->
-                <article class="surface-shadow surface-shadow-hover premium-ease bg-white backdrop-blur-md border border-jorpro-blue/25 hover:border-jorpro-blue rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 group">
-                    <div>
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-jorpro-blue/20 to-jorpro-blue/5 text-jorpro-blue border border-jorpro-blue/25 flex items-center justify-center text-xl font-bold mb-4 ring-sheen premium-ease group-hover:scale-110 transition-transform">
-                            +
-                        </div>
-                        <div class="space-y-1">
-                            <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase block">
-                                START
-                            </span>
-                            <h3 class="text-lg font-bold text-jorpro-ink tracking-tight group-hover:text-jorpro-blue transition-colors">
-                                New Analysis
-                            </h3>
-                            <span class="text-xs text-jorpro-mute block">
-                                สร้างการวิเคราะห์ใหม่
-                            </span>
-                            <p class="text-xs text-jorpro-mute pt-2 leading-relaxed">
-                                Create a new Fault Tree Analysis and define the top event.
-                            </p>
-                        </div>
-                    </div>
-
-                    <button id="newAnalysisBtn" class="glow-shadow-blue premium-ease mt-6 w-full group/btn inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-jorpro-blue to-jorpro-blueBright hover:from-jorpro-blueBright hover:to-jorpro-blue text-white font-bold text-xs py-3 px-4 rounded-xl transition-all active:scale-[0.98]" type="button">
-                        <span>NEW ANALYSIS</span>
-                        <span class="group-hover/btn:translate-x-1 transition-transform">→</span>
-                    </button>
-                </article>
-
-
-                <!-- HISTORY CARD -->
-                <article class="surface-shadow surface-shadow-hover premium-ease bg-white backdrop-blur-md border border-jorpro-line hover:border-jorpro-blueBright/40 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 group">
-                    <div>
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-jorpro-canvas to-white text-jorpro-blue border border-jorpro-line flex items-center justify-center text-xl font-bold mb-4 ring-sheen premium-ease group-hover:scale-110 transition-transform">
-                            ≡
-                        </div>
-                        <div class="space-y-1">
-                            <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                                RECORDS
-                            </span>
-                            <h3 class="text-lg font-bold text-jorpro-ink tracking-tight group-hover:text-jorpro-blue transition-colors">
-                                Analysis History
-                            </h3>
-                            <span class="text-xs text-jorpro-mute block">
-                                ประวัติการวิเคราะห์
-                            </span>
-                            <p class="text-xs text-jorpro-mute pt-2 leading-relaxed">
-                                View previous Fault Tree Analysis records.
-                            </p>
-                        </div>
-                    </div>
-
-                    <button id="historyBtn" class="premium-ease mt-6 w-full group/btn inline-flex items-center justify-center space-x-2 bg-jorpro-canvas hover:bg-slate-100 text-jorpro-slate border border-jorpro-line hover:border-jorpro-blueBright/40 font-semibold text-xs py-3 px-4 rounded-xl transition-all active:scale-[0.98]" type="button">
-                        <span>ANALYSIS HISTORY</span>
-                        <span class="group-hover/btn:translate-x-1 transition-transform">→</span>
-                    </button>
-                </article>
-
-
-
-                <!-- ANALYSIS RESULT CARD -->
-                <article class="surface-shadow surface-shadow-hover premium-ease bg-white backdrop-blur-md border border-jorpro-blue/20 hover:border-jorpro-blue/50 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 group">
-
-                    <div>
-
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-jorpro-blue/15 to-jorpro-blue/5 text-jorpro-blue border border-jorpro-blue/25 flex items-center justify-center text-xl font-bold mb-4 ring-sheen premium-ease group-hover:scale-110 transition-transform">
-                            ✓
-                        </div>
-
-                        <div class="space-y-1">
-
-                            <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase block">
-                                RESULTS
-                            </span>
-
-                            <h3 class="text-lg font-bold text-jorpro-ink tracking-tight group-hover:text-jorpro-blue transition-colors">
-                                Analysis Result
-                            </h3>
-
-                            <span class="text-xs text-jorpro-mute block">
-                                ผลการวิเคราะห์จาก Expert
-                            </span>
-
-                            <p class="text-xs text-jorpro-mute pt-2 leading-relaxed">
-                                View the latest completed Analysis Result prepared by Expert.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <button
-                        id="analysisResultBtn"
-                        class="premium-ease mt-6 w-full group/btn inline-flex items-center justify-center space-x-2 bg-jorpro-blue/10 hover:bg-jorpro-blue/20 text-jorpro-blueBright border border-jorpro-blue/25 hover:border-jorpro-blue/50 font-semibold text-xs py-3 px-4 rounded-xl transition-all active:scale-[0.98]"
-                        type="button">
-
-                        <span>ANALYSIS RESULT</span>
-
-                        <span class="group-hover/btn:translate-x-1 transition-transform">
-                            →
-                        </span>
-
-                    </button>
-
-                </article>
-
-
-                <!-- RETURN CARD -->
-                <article class="surface-shadow surface-shadow-hover premium-ease bg-white backdrop-blur-md border border-jorpro-line hover:border-jorpro-blueBright/40 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 group">
-                    <div>
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-jorpro-canvas to-white text-jorpro-mute border border-jorpro-line flex items-center justify-center text-xl font-bold mb-4 ring-sheen premium-ease group-hover:scale-110 transition-transform">
-                            ←
-                        </div>
-                        <div class="space-y-1">
-                            <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                                NAVIGATION
-                            </span>
-                            <h3 class="text-lg font-bold text-jorpro-ink tracking-tight group-hover:text-jorpro-slate transition-colors">
-                                Return
-                            </h3>
-                            <span class="text-xs text-jorpro-mute block">
-                                กลับหน้าหลัก
-                            </span>
-                            <p class="text-xs text-jorpro-mute pt-2 leading-relaxed">
-                                Return to role selection.
-                            </p>
-                        </div>
-                    </div>
-
-                    <button id="backBtn" class="premium-ease mt-6 w-full group/btn inline-flex items-center justify-center space-x-2 bg-jorpro-canvas hover:bg-slate-100 text-jorpro-slate border border-jorpro-line font-semibold text-xs py-3 px-4 rounded-xl transition-all active:scale-[0.98]" type="button">
-                        <span>BACK</span>
-                        <span class="group-hover/btn:-translate-x-1 transition-transform">←</span>
-                    </button>
-                </article>
-
-            </section>
-
-
-            <!-- =================================================
-                 SYSTEM STATUS
-                 ================================================= -->
-            <section class="surface-shadow flex items-center justify-between bg-white border border-jorpro-line rounded-2xl p-4 md:p-5 gap-4">
-
-                <div class="flex items-center space-x-3.5">
-                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 text-emerald-600 flex items-center justify-center text-sm font-bold shrink-0 ring-sheen">
-                        ✓
-                    </div>
-                    <div>
-                        <strong class="text-xs md:text-sm font-bold text-jorpro-slate block">
-                            Safety Officer Workspace Ready
-                        </strong>
-                        <span class="text-xs text-jorpro-mute block">
-                            ระบบพร้อมสำหรับสร้างการวิเคราะห์
-                        </span>
-                    </div>
-                </div>
-
-                <div class="flex-1 h-px bg-jorpro-canvas hidden sm:block mx-4"></div>
-
-                <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-extrabold tracking-widest shrink-0 uppercase shadow-[0_0_0_3px_rgba(16,185,129,0.08)]">
-                    READY
-                </span>
-
-            </section>
-
-        </main>
-
-    </div>
+            list.innerHTML = '<div class="dt-list">' + recent.map(function (r) {
+                var src = r.analysisData || r;
+                var title = src.analysisTitle || src.title || "Untitled Analysis";
+                var topEvent = src.topEvent || "-";
+                var status = src.status || "DRAFT";
+                return (
+                    '<div class="list-row" onclick="window.location.href=\'analysis-history.html\'">' +
+                    '<div class="list-row-icon">' + Icon("file-text", "", 16) + '</div>' +
+                    '<div class="list-row-body">' +
+                    '<div class="list-row-title-line">' +
+                    '<span class="list-row-title">' + esc(title) + '</span>' +
+                    '<span class="status-badge ' + (STATUS_CLASS[status] || "status-badge-slate") + '">' + esc(STATUS_LABEL[status] || status) + '</span>' +
+                    '</div>' +
+                    '<div class="list-row-subtitle">' + esc(topEvent) + '</div>' +
+                    '</div>' +
+                    '<div class="list-row-chevron">' + Icon("chevron-right", "", 16) + '</div>' +
+                    '</div>'
+                );
+            }).join("") + '</div>';
+        })();
+    </script>
 
     <script src="safety-officer.js"></script>
 

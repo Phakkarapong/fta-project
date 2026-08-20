@@ -633,12 +633,13 @@ function render() {
 
     if (!analysis) {
 
-        alert(
+        Notify.error(
+            "ไม่พบผลการวิเคราะห์นี้",
             "Analysis result was not found."
-        );
-
-        window.location.href =
-            "analysis-history.html";
+        ).then(function () {
+            window.location.href =
+                "analysis-history.html";
+        });
 
         return;
 
@@ -1672,7 +1673,7 @@ if (exportExcelBtn) {
                 "undefined"
             ) {
 
-                window.alert(
+                Notify.error(
                     "ไม่สามารถโหลดไลบรารี Excel ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่"
                 );
 
@@ -1688,7 +1689,7 @@ if (exportExcelBtn) {
 
             if (!rows.length) {
 
-                window.alert(
+                Notify.error(
                     "ไม่มีข้อมูล Basic Events ให้ Export"
                 );
 

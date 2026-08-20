@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
     <meta charset="UTF-8">
@@ -7,13 +7,13 @@
     <title>Analysis Result - JorproA</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
-
-    <!-- Google Fonts: Noto Sans Thai (display, UI, Thai), IBM Plex Mono (data tags) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS CDN — utility layer only. Colors below are remapped
+         to the new Modern-SaaS palette (theme.css tokens), so the existing
+         markup renders in the new visual system without a full rewrite. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,389 +21,306 @@
                 extend: {
                     colors: {
                         jorpro: {
-                            ink: '#101828',
-                            slate: '#475467',
-                            mute: '#8A94A6',
-                            canvas: '#F3F5F9',
+                            ink: '#0F172A',
+                            slate: '#475569',
+                            mute: '#94A3B8',
+                            canvas: '#F8FAFC',
                             surface: '#FFFFFF',
-                            line: '#E2E7EF',
-                            blue: '#123E7C',
-                            blueMid: '#2A5FAE',
-                            blueBright: '#2E6FE0',
-                            red: '#C21F2E',
-                            redDim: '#F6E4E5',
-                            redLight: '#FF97A0',
+                            line: '#E2E8F0',
+                            blue: '#4F46E5',
+                            blueMid: '#4338CA',
+                            blueBright: '#6366F1',
+                            red: '#E11D48',
+                            redDim: '#FFF1F2',
+                            redLight: '#FDA4AF',
                         }
                     },
                     fontFamily: {
-                        display: ['"Noto Sans Thai"', 'sans-serif'],
-                        sans: ['"Noto Sans Thai"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', '"Noto Sans Thai"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', '"Noto Sans Thai"', 'sans-serif'],
                         mono: ['"IBM Plex Mono"', 'monospace'],
                     }
                 }
             }
         }
     </script>
-    <style>
-        .strip-topbar { background: #C21F2E; }
-        .bg-instrument-pattern {
-            background-image: radial-gradient(rgba(16, 24, 40, 0.05) 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-        button:focus-visible, select:focus-visible, a:focus-visible {
-            outline: 2px solid #2E6FE0;
-            outline-offset: 2px;
-        }
-        body { padding-top: 3px; }
 
-        /* Same sky as the landing page, fixed to the viewport so it
-           reads correctly behind scrolling content. */
-        .jorpro-page {
-            position: relative;
-            background:
-                radial-gradient(circle at top right, rgba(134, 183, 238, 0.16), transparent 34%),
-                radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.10), transparent 30%),
-                linear-gradient(180deg, #081D3F 0%, #123E7C 28%, #1F5DAD 52%, #3A7FD9 74%, #86B7EE 100%);
-            background-attachment: fixed;
-        }
-        .jorpro-clouds { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-        .jorpro-cloud {
-            position: absolute;
-            border-radius: 9999px;
-            background: radial-gradient(ellipse at center, rgba(255,255,255,0.95), rgba(255,255,255,0) 70%);
-            filter: blur(12px);
-        }
-        .jorpro-cloud-a { width: 280px; height: 95px; top: 6%; left: 4%; opacity: 0.55; }
-        .jorpro-cloud-b { width: 210px; height: 72px; top: 15%; right: 8%; opacity: 0.45; }
-        .jorpro-cloud-c { width: 330px; height: 112px; top: 42%; left: -5%; opacity: 0.4; }
-        .jorpro-cloud-d { width: 230px; height: 82px; top: 58%; right: -3%; opacity: 0.35; }
-        .jorpro-cloud-e { width: 185px; height: 66px; top: 78%; left: 42%; opacity: 0.32; }
-        @media (prefers-reduced-motion: reduce) { .jorpro-cloud { animation: none !important; } }
-    </style>
+    <link rel="stylesheet" href="../theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="jorpro-page text-jorpro-ink font-sans min-h-screen antialiased selection:bg-jorpro-blue selection:text-white py-8 px-4 sm:px-6 lg:px-8">
+<body>
 
-    <div class="strip-topbar w-full h-[3px] fixed top-0 left-0 right-0 z-50"></div>
-    <div class="jorpro-clouds" aria-hidden="true">
-        <div class="jorpro-cloud jorpro-cloud-a"></div>
-        <div class="jorpro-cloud jorpro-cloud-b"></div>
-        <div class="jorpro-cloud jorpro-cloud-c hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-d hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-e hidden lg:block"></div>
-    </div>
-<div class="workspace result-page max-w-5xl mx-auto space-y-6 relative z-10">
+    <div class="app-shell">
+        <div class="main-area">
 
-        <!-- HEADER -->
-        <header class="workspace-header flex flex-col sm:flex-row items-center justify-between p-4 md:p-5 rounded-2xl bg-white backdrop-blur-md border border-jorpro-line shadow-xl gap-4">
-            <div class="brand-area flex items-center space-x-3.5">
-                <div class="brand-icon w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-jorpro-blue/20 shrink-0">
-                    <img src="../logo-icon.png" alt="JorproA logo" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold tracking-wider text-jorpro-ink">
-                        Jorpro<span class="text-jorpro-blue">A</span>
-                    </h1>
-                    <p class="text-xs text-jorpro-mute">
-                        Aviation Safety Analysis System
-                    </p>
-                </div>
-            </div>
+            <header class="topbar" id="appTopbar"></header>
 
-            <div class="role-pill inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-jorpro-blue/10 border border-jorpro-blue/25 text-xs font-semibold text-jorpro-blue tracking-wide">
-                <span class="status-dot w-2 h-2 rounded-full bg-jorpro-blue animate-pulse"></span>
-                <span>EXPERT</span>
-            </div>
-        </header>
+            <main class="main-content" id="pageContent">
 
+                <div class="workspace result-page" style="max-width:960px;margin:0 auto;">
 
-        <!-- PAGE TITLE -->
-        <section class="analysis-info final-result-header bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-xl">
-            <span class="page-kicker text-xs font-bold tracking-widest text-jorpro-blue uppercase block mb-1">
-                FINAL SAFETY REPORT
-            </span>
-            <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink flex flex-wrap items-baseline gap-2 md:gap-3">
-                Analysis Result
-                <span class="thai-label text-sm md:text-base font-normal text-jorpro-mute">
-                    ผลการวิเคราะห์
-                </span>
-            </h2>
-            <p class="text-xs md:text-sm text-jorpro-mute mt-1">
-                Final summary of FTA and FAA Risk Assessment.
-                <span class="thai-label block sm:inline text-jorpro-mute">
-                    สรุปผลการวิเคราะห์ FTA และการประเมินความเสี่ยงตาม FAA
-                </span>
-            </p>
-        </section>
-
-
-        <!-- MAIN CONTENT -->
-        <main class="result-content space-y-6">
-
-            <!-- ANALYSIS INFORMATION -->
-            <div class="dashboard-card bg-white backdrop-blur-md border border-jorpro-line hover:border-jorpro-line rounded-2xl p-6 shadow-xl transition-all">
-                <div class="final-section-heading flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                    <div class="final-heading-icon w-10 h-10 rounded-xl bg-jorpro-canvas border border-jorpro-line flex items-center justify-center font-bold text-jorpro-blue shrink-0">
-                        i
-                    </div>
-                    <div>
-                        <span class="card-label text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                            ANALYSIS PROFILE
+                    <!-- PAGE TITLE -->
+                    <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm" style="margin-bottom:20px;">
+                        <span class="text-xs font-bold tracking-widest text-jorpro-blue uppercase block mb-1">
+                            FINAL SAFETY REPORT
                         </span>
-                        <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
-                            Analysis Information
-                        </h3>
-                    </div>
-                </div>
-
-                <div class="final-info-grid grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <div class="final-info-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Analysis Title</span>
-                        <strong id="analysisTitle" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                    </div>
-                    <div class="final-info-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Top Event</span>
-                        <strong id="topEvent" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                    </div>
-                </div>
-
-                <div class="final-info-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div class="final-info-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Department / Area</span>
-                        <strong id="department" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                    </div>
-                    <div class="final-info-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Analysis Date & Time</span>
-                        <strong id="analysisDate" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                    </div>
-                    <div class="final-info-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Submitted Date & Time</span>
-                        <strong id="submittedAt" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                    </div>
-                </div>
-
-                <div class="final-description bg-jorpro-canvas border border-jorpro-line rounded-xl p-4">
-                    <span class="text-xs text-jorpro-mute block mb-1">Description</span>
-                    <p id="description" class="text-xs md:text-sm text-jorpro-slate leading-relaxed">-</p>
-                </div>
-            </div>
-
-
-            <!-- FTA RESULT -->
-            <div class="dashboard-card bg-white backdrop-blur-md border border-jorpro-line hover:border-jorpro-line rounded-2xl p-6 shadow-xl transition-all">
-                <div class="final-section-heading flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                    <div class="final-heading-icon fta-result-icon w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue shrink-0">
-                        %
-                    </div>
-                    <div>
-                        <span class="card-label text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                            FAULT TREE ANALYSIS
-                        </span>
-                        <h3 class="text-base md:text-lg font-bold text-jorpro-ink flex flex-wrap items-baseline gap-2">
-                            FTA Analysis Result
-                            <span class="thai-card-title text-xs font-normal text-jorpro-mute">
-                                ผลการวิเคราะห์ Fault Tree
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink flex flex-wrap items-baseline gap-2 md:gap-3">
+                            Analysis Result
+                            <span class="text-sm md:text-base font-normal text-jorpro-mute">
+                                ผลการวิเคราะห์
                             </span>
-                        </h3>
-                    </div>
-                </div>
-
-                <div class="final-result-grid grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="final-result-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Main Gate</span>
-                        <strong id="mainGate" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                    </div>
-                    <div class="final-result-item probability-final-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Top Event Probability</span>
-                        <strong id="ftaProbability" class="text-base font-bold text-jorpro-blue break-words">-</strong>
-                    </div>
-                    <div class="final-result-item percentage-final-item bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-xs text-jorpro-mute">Probability (%)</span>
-                        <strong id="ftaPercentage" class="text-base font-bold text-jorpro-blue break-words">-</strong>
-                    </div>
-                </div>
-            </div>
+                        </h2>
+                        <p class="text-xs md:text-sm text-jorpro-mute mt-1">
+                            Final summary of FTA and FAA Risk Assessment.
+                            <span class="block sm:inline text-jorpro-mute">
+                                สรุปผลการวิเคราะห์ FTA และการประเมินความเสี่ยงตาม FAA
+                            </span>
+                        </p>
+                    </section>
 
 
+                    <!-- MAIN CONTENT -->
+                    <main class="result-content" style="display:flex;flex-direction:column;gap:20px;">
 
-            <!-- BASIC EVENT RESULTS -->
-            <div class="dashboard-card bg-white backdrop-blur-md border border-jorpro-line rounded-2xl p-6 shadow-xl">
-                <div class="final-section-heading flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                    <div class="final-heading-icon w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue shrink-0">
-                        E
-                    </div>
-                    <div>
-                        <span class="card-label text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                            BASIC EVENTS
-                        </span>
-                        <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
-                            Basic Event Probability Results
-                        </h3>
-                    </div>
-                </div>
-                <div id="basicEventResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div class="text-xs text-jorpro-mute">-</div>
-                </div>
-            </div>
+                        <!-- ANALYSIS INFORMATION -->
+                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
+                                <div class="w-10 h-10 rounded-xl bg-jorpro-canvas border border-jorpro-line flex items-center justify-center font-bold text-jorpro-blue shrink-0">
+                                    i
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                        ANALYSIS PROFILE
+                                    </span>
+                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
+                                        Analysis Information
+                                    </h3>
+                                </div>
+                            </div>
 
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Analysis Title</span>
+                                    <strong id="analysisTitle" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                </div>
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Top Event</span>
+                                    <strong id="topEvent" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                </div>
+                            </div>
 
-            <!-- FAA RISK ASSESSMENT -->
-            <div class="dashboard-card bg-white backdrop-blur-md border border-jorpro-line rounded-2xl p-6 shadow-xl">
-                <div class="final-section-heading flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                    <div class="flex items-center gap-4">
-                        <div class="final-heading-icon w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center font-bold text-amber-600 shrink-0">
-                            ⚠
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Department / Area</span>
+                                    <strong id="department" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                </div>
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Analysis Date &amp; Time</span>
+                                    <strong id="analysisDate" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                </div>
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Submitted Date &amp; Time</span>
+                                    <strong id="submittedAt" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                </div>
+                            </div>
+
+                            <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4">
+                                <span class="text-xs text-jorpro-mute block mb-1">Description</span>
+                                <p id="description" class="text-xs md:text-sm text-jorpro-slate leading-relaxed">-</p>
+                            </div>
                         </div>
-                        <div>
-                            <span class="card-label text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                                FAA RISK ASSESSMENT
+
+
+                        <!-- FTA RESULT -->
+                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
+                                <div class="w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue shrink-0">
+                                    %
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                        FAULT TREE ANALYSIS
+                                    </span>
+                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink flex flex-wrap items-baseline gap-2">
+                                        FTA Analysis Result
+                                        <span class="text-xs font-normal text-jorpro-mute">
+                                            ผลการวิเคราะห์ Fault Tree
+                                        </span>
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Main Gate</span>
+                                    <strong id="mainGate" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                </div>
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Top Event Probability</span>
+                                    <strong id="ftaProbability" class="text-base font-bold text-jorpro-blue break-words">-</strong>
+                                </div>
+                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute">Probability (%)</span>
+                                    <strong id="ftaPercentage" class="text-base font-bold text-jorpro-blue break-words">-</strong>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- BASIC EVENT RESULTS -->
+                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
+                                <div class="w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue shrink-0">
+                                    E
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                        BASIC EVENTS
+                                    </span>
+                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
+                                        Basic Event Probability Results
+                                    </h3>
+                                </div>
+                            </div>
+                            <div id="basicEventResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="text-xs text-jorpro-mute">-</div>
+                            </div>
+                        </div>
+
+
+                        <!-- FAA RISK ASSESSMENT -->
+                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center font-bold text-amber-600 shrink-0">
+                                        ⚠
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                            FAA RISK ASSESSMENT
+                                        </span>
+                                        <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
+                                            Risk Assessment Result
+                                        </h3>
+                                        <span class="text-xs font-normal text-jorpro-mute">
+                                            ผลการประเมินความเสี่ยงทุก Event
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div id="riskCompletionBadge"
+                                     class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-xs font-bold text-jorpro-slate">
+                                    0 / 0 EVENTS
+                                </div>
+                            </div>
+
+                            <!-- OVERALL RISK -->
+                            <div id="overallRiskSummary"
+                                 class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4 mb-5">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div class="rounded-xl border border-jorpro-line bg-white p-4">
+                                        <span class="text-[11px] text-jorpro-mute block">Highest Risk</span>
+                                        <strong id="highestRiskLevel" class="text-lg font-black text-jorpro-ink block mt-1">-</strong>
+                                    </div>
+                                    <div class="rounded-xl border border-jorpro-line bg-white p-4">
+                                        <span class="text-[11px] text-jorpro-mute block">Events Needing SO Review</span>
+                                        <strong id="mitigationEventCount" class="text-lg font-black text-amber-600 block mt-1">0</strong>
+                                    </div>
+                                    <div class="rounded-xl border border-jorpro-line bg-white p-4">
+                                        <span class="text-[11px] text-jorpro-mute block">Overall Initial Risk</span>
+                                        <strong id="overallAcceptability" class="text-lg font-black text-jorpro-ink block mt-1">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ALL EVENT TABLE -->
+                            <div class="data-table-scroll">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Event</th>
+                                            <th>Likelihood</th>
+                                            <th>Severity</th>
+                                            <th>Risk Index</th>
+                                            <th>Initial Risk Level</th>
+                                            <th>Safety Officer Scoring</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riskAssessmentTableBody"></tbody>
+                                </table>
+                            </div>
+
+                            <!-- PENDING / STATUS -->
+                            <div id="riskPendingPanel" class="hidden mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <div class="text-xs font-bold tracking-widest text-amber-600 uppercase">
+                                    EVENTS STILL REQUIRING ASSESSMENT
+                                </div>
+                                <div id="riskPendingList" class="mt-3" style="display:flex;flex-direction:column;gap:8px;"></div>
+                            </div>
+                        </div>
+
+
+                        <!-- SAFETY CONTROLS BY EVENT -->
+                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
+                            <div class="flex items-start justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
+                                <div>
+                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                        SAFETY CONTROLS
+                                    </span>
+                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink mt-1">
+                                        Mitigation &amp; Risk Ownership
+                                    </h3>
+                                    <span class="text-xs text-jorpro-mute block mt-1">
+                                        ข้อมูล Existing Risk Control, Safety Mitigation และ Risk Owner ของแต่ละ Event
+                                    </span>
+                                </div>
+                                <span id="safetyControlsEventCount"
+                                      class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-[10px] font-bold text-jorpro-blue shrink-0">
+                                    0 EVENTS
+                                </span>
+                            </div>
+                            <div id="safetyControlsByEvent" style="display:flex;flex-direction:column;gap:14px;"></div>
+                        </div>
+
+
+                        <!-- FINAL STATUS CARD -->
+                        <div class="text-center bg-gradient-to-b from-white to-jorpro-canvas border border-jorpro-blue/25 rounded-2xl p-6 md:p-10 shadow-sm" style="display:flex;flex-direction:column;gap:12px;">
+                            <span class="text-xs font-bold tracking-widest text-jorpro-blue uppercase block">
+                                INITIAL RISK STATUS
                             </span>
-                            <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
-                                Risk Assessment Result
+                            <h3 class="text-lg md:text-xl font-bold text-jorpro-ink flex flex-wrap items-center justify-center gap-2">
+                                Initial Risk Status
+                                <span class="text-xs md:text-sm font-normal text-jorpro-mute">
+                                    สถานะความเสี่ยงเบื้องต้น (รอ Safety Officer ให้คะแนนขั้นสุดท้าย)
+                                </span>
                             </h3>
-                            <span class="thai-card-title text-xs font-normal text-jorpro-mute">
-                                ผลการประเมินความเสี่ยงทุก Event
-                            </span>
-                        </div>
-                    </div>
-
-                    <div id="riskCompletionBadge"
-                         class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-xs font-bold text-jorpro-slate">
-                        0 / 0 EVENTS
-                    </div>
-                </div>
-
-                <!-- OVERALL RISK -->
-                <div id="overallRiskSummary"
-                     class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4 mb-5">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                            <span class="text-[11px] text-jorpro-mute block">Highest Risk</span>
-                            <strong id="highestRiskLevel"
-                                    class="text-lg font-black text-jorpro-ink block mt-1">
+                            <div id="finalStatus" class="inline-block text-lg md:text-xl font-bold px-6 py-2.5 rounded-full bg-jorpro-blue/10 border border-jorpro-blue text-jorpro-blueBright tracking-wider my-2" style="align-self:center;">
                                 -
-                            </strong>
+                            </div>
+                            <p id="finalMessage" class="text-xs md:text-sm text-jorpro-mute max-w-xl mx-auto leading-relaxed">-</p>
                         </div>
 
-                        <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                            <span class="text-[11px] text-jorpro-mute block">Events Needing SO Review</span>
-                            <strong id="mitigationEventCount"
-                                    class="text-lg font-black text-amber-600 block mt-1">
-                                0
-                            </strong>
-                        </div>
+                    </main>
 
-                        <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                            <span class="text-[11px] text-jorpro-mute block">Overall Initial Risk</span>
-                            <strong id="overallAcceptability"
-                                    class="text-lg font-black text-jorpro-ink block mt-1">
-                                -
-                            </strong>
-                        </div>
-                    </div>
+
+                    <!-- TOOLBAR -->
+                    <section class="flex flex-col sm:flex-row justify-between gap-3" style="margin-top:20px;">
+                        <button id="backBtn" type="button" class="ui-btn ui-btn-secondary">← BACK</button>
+                        <button id="dashboardBtn" type="button" class="ui-btn ui-btn-primary">EXPERT DASHBOARD</button>
+                    </section>
+
                 </div>
 
-                <!-- ALL EVENT TABLE -->
-                <div class="overflow-x-auto rounded-xl border border-jorpro-line">
-                    <table class="min-w-full text-left">
-                        <thead class="bg-jorpro-canvas">
-                            <tr class="text-[11px] uppercase tracking-wider text-jorpro-mute">
-                                <th class="px-4 py-3">Event</th>
-                                <th class="px-4 py-3">Likelihood</th>
-                                <th class="px-4 py-3">Severity</th>
-                                <th class="px-4 py-3">Risk Index</th>
-                                <th class="px-4 py-3">Initial Risk Level</th>
-                                <th class="px-4 py-3">Safety Officer Scoring</th>
-                            </tr>
-                        </thead>
-                        <tbody id="riskAssessmentTableBody"
-                               class="divide-y divide-jorpro-line bg-jorpro-canvas">
-                        </tbody>
-                    </table>
-                </div>
+            </main>
 
-                <!-- PENDING / STATUS -->
-                <div id="riskPendingPanel"
-                     class="hidden mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <div class="text-xs font-bold tracking-widest text-amber-600 uppercase">
-                        EVENTS STILL REQUIRING ASSESSMENT
-                    </div>
-                    <div id="riskPendingList"
-                         class="mt-3 space-y-2">
-                    </div>
-                </div>
-
-                
-
-
-
-
-            <!-- SAFETY CONTROLS BY EVENT -->
-            <div class="dashboard-card bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-xl">
-
-                <div class="flex items-start justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                    <div>
-                        <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                            SAFETY CONTROLS
-                        </span>
-
-                        <h3 class="text-base md:text-lg font-bold text-jorpro-ink mt-1">
-                            Mitigation &amp; Risk Ownership
-                        </h3>
-
-                        <span class="text-xs text-jorpro-mute block mt-1">
-                            ข้อมูล Existing Risk Control, Safety Mitigation และ Risk Owner ของแต่ละ Event
-                        </span>
-                    </div>
-
-                    <span id="safetyControlsEventCount"
-                          class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-[10px] font-bold text-jorpro-blue shrink-0">
-                        0 EVENTS
-                    </span>
-                </div>
-
-                <div id="safetyControlsByEvent"
-                     class="space-y-4">
-                </div>
-
-            </div>
-
-
-            <!-- FINAL STATUS CARD -->
-            <div class="dashboard-card final-status-card text-center bg-gradient-to-b from-white to-jorpro-canvas border border-jorpro-blue/25 rounded-2xl p-6 md:p-10 shadow-2xl space-y-4">
-                <span class="final-status-label text-xs font-bold tracking-widest text-jorpro-blue uppercase block">
-                    INITIAL RISK STATUS
-                </span>
-                <h3 class="text-lg md:text-xl font-bold text-jorpro-ink flex flex-wrap items-center justify-center gap-2">
-                    Initial Risk Status
-                    <span class="thai-label text-xs md:text-sm font-normal text-jorpro-mute">
-                        สถานะความเสี่ยงเบื้องต้น (รอ Safety Officer ให้คะแนนขั้นสุดท้าย)
-                    </span>
-                </h3>
-                
-                <div id="finalStatus" class="final-status-value inline-block text-lg md:text-xl font-bold px-6 py-2.5 rounded-full bg-jorpro-blue/10 border border-jorpro-blue text-jorpro-blueBright tracking-wider shadow-lg shadow-jorpro-blue/20 my-2">
-                    -
-                </div>
-                
-                <p id="finalMessage" class="text-xs md:text-sm text-jorpro-mute max-w-xl mx-auto leading-relaxed">
-                    -
-                </p>
-            </div>
-
-        </main>
-
-
-        <!-- TOOLBAR -->
-        <section class="toolbar flex flex-col sm:flex-row justify-between gap-4 pt-2">
-            <button id="backBtn" class="secondary-btn w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-semibold tracking-wider text-jorpro-slate bg-white hover:bg-slate-100 border border-jorpro-line hover:border-jorpro-blueBright/40 transition-all shadow-md" type="button">
-                ← BACK
-            </button>
-            <button id="dashboardBtn" class="primary-btn w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold tracking-wider text-white bg-gradient-to-r from-jorpro-blue to-jorpro-blueBright hover:from-jorpro-blueBright hover:to-jorpro-blue shadow-lg shadow-jorpro-blue/20 transition-all transform hover:-translate-y-0.5" type="button">
-                EXPERT DASHBOARD
-            </button>
-        </section>
-
+        </div>
     </div>
+
+    <script src="../icons.js"></script>
+    <script src="../notify.js"></script>
+    <script src="../shell.js"></script>
+    <script>Shell.mount({ role: "expert", active: "result", title: "Analysis Result" });</script>
 
     <script src="analysis-result.js"></script>
 </body>

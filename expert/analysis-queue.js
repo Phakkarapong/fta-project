@@ -361,7 +361,8 @@ function startAnalysisById(id) {
 
     if (!selected) {
 
-        alert(
+        Notify.error(
+            "ไม่พบข้อมูลการวิเคราะห์นี้ในระบบ",
             "Analysis record not found."
         );
 
@@ -452,278 +453,80 @@ function startAnalysisById(id) {
 
 }
 
+const QUEUE_STATUS_LABELS = {
+    PENDING_EXPERT: "รอผู้เชี่ยวชาญ",
+    UNDER_ANALYSIS: "กำลังวิเคราะห์"
+};
+
+const QUEUE_STATUS_BADGE_CLASS = {
+    PENDING_EXPERT: "status-badge-amber",
+    UNDER_ANALYSIS: "status-badge-blue"
+};
+
+function queueStatusBadgeHtml(status) {
+    const cls = QUEUE_STATUS_BADGE_CLASS[status] || "status-badge-slate";
+    const label = QUEUE_STATUS_LABELS[status] || status;
+    return `<span class="status-badge ${cls}">${escapeHtml(label)}</span>`;
+}
+
+let queueTable = null;
+
 function renderQueue() {
 
-    const list =
+    const container =
         document.getElementById(
             "queueList"
         );
 
-    if (!list) return;
+    if (!container) return;
 
+    const queue = getExpertCandidates();
 
-    const queue =
-        getExpertCandidates();
+    const filterOptions = Array.from(
+        new Set(queue.map(r => r.status))
+    ).map(value => ({ value, label: QUEUE_STATUS_LABELS[value] || value }));
 
+    const columns = [
+        {
+            key: "analysisTitle", label: "หัวข้อการวิเคราะห์",
+            cellHtml: r => `
+                <div style="font-weight:800;color:var(--ink);">${escapeHtml(r.analysisTitle)}</div>
+                <div style="color:var(--muted);font-size:11px;margin-top:2px;">${r.ftaData.basicEvents.length} Basic Event(s)</div>
+            `
+        },
+        { key: "topEvent", label: "Top Event", cellHtml: r => escapeHtml(r.topEvent) },
+        { key: "department", label: "แผนก/พื้นที่", cellHtml: r => escapeHtml(r.department || "-") },
+        { key: "status", label: "สถานะ", cellHtml: r => queueStatusBadgeHtml(r.status) }
+    ];
 
-    list.innerHTML = "";
+    const config = {
+        columns,
+        rows: queue,
+        searchKeys: ["analysisTitle", "topEvent", "department", "officerName"],
+        searchPlaceholder: "ค้นหาหัวข้อ, Top Event หรือแผนก...",
+        filterKey: "status",
+        filterOptions,
+        pageSize: 8,
+        emptyMessage: "ไม่มีข้อมูลที่ส่งจาก Safety Officer — No Pending Analysis",
+        rowMeta: r => ({
+            icon: Icon("inbox", "", 16),
+            title: r.analysisTitle,
+            subtitle: `${r.topEvent} · ${r.ftaData.basicEvents.length} Basic Events`,
+            badgeHtml: queueStatusBadgeHtml(r.status)
+        }),
+        onRowClick: r => startAnalysisById(r.id),
+        rowActions: r => [
+            { label: "เริ่มวิเคราะห์", icon: Icon("play", "", 12), variant: "primary", onClick: rec => startAnalysisById(rec.id) }
+        ]
+    };
 
-
-    if (queue.length === 0) {
-
-        list.innerHTML = `
-            <section class="rounded-2xl
-                            bg-white
-                            border border-jorpro-line
-                            p-10 text-center">
-
-                <div class="text-4xl mb-4">📋</div>
-
-                <h3 class="text-lg font-bold text-jorpro-ink">
-                    No Pending Analysis
-                </h3>
-
-                <p class="text-sm text-jorpro-mute mt-2">
-                    ไม่มีข้อมูลที่ส่งจาก Safety Officer
-                </p>
-
-            </section>
-        `;
-
-        return;
-
+    if (queueTable) {
+        queueTable.setRows(queue);
+    } else {
+        queueTable = renderDataTable(container, config);
     }
-
-
-    queue.forEach(
-        function(record) {
-
-            const events =
-                record.ftaData.basicEvents;
-
-
-            const card =
-                document.createElement(
-                    "section"
-                );
-
-            card.className =
-                "rounded-2xl bg-white " +
-                "border border-jorpro-line p-5 md:p-6";
-
-
-            card.innerHTML = `
-
-                <div class="flex flex-col
-                            lg:flex-row
-                            lg:justify-between
-                            gap-6">
-
-                    <div class="flex-1 min-w-0">
-
-                        <div class="flex flex-wrap
-                                    items-center gap-2">
-
-                            <span class="px-3 py-1.5 rounded-full
-                                         bg-jorpro-blue/10
-                                         border border-jorpro-blue/20
-                                         text-jorpro-blueBright
-                                         text-[10px] font-bold">
-                                ${escapeHtml(
-                                    record.status
-                                )}
-                            </span>
-
-                            <span class="px-3 py-1.5 rounded-full
-                                         bg-jorpro-canvas
-                                         border border-jorpro-line
-                                         text-jorpro-mute
-                                         text-[10px] font-bold">
-                                ${events.length} BASIC EVENTS
-                            </span>
-
-                        </div>
-
-
-                        <h3 class="text-xl font-extrabold
-                                   text-jorpro-ink mt-3 break-words">
-                            ${escapeHtml(
-                                record.analysisTitle
-                            )}
-                        </h3>
-
-
-                        <div class="grid grid-cols-1
-                                    md:grid-cols-2 gap-3 mt-4">
-
-                            <div class="rounded-xl
-                                        bg-jorpro-canvas
-                                        border border-jorpro-line p-3">
-
-                                <div class="text-[10px]
-                                            tracking-widest
-                                            text-jorpro-mute font-bold">
-                                    TOP EVENT
-                                </div>
-
-                                <div class="text-sm text-jorpro-blueBright
-                                            font-bold mt-1 break-words">
-                                    ${escapeHtml(
-                                        record.topEvent
-                                    )}
-                                </div>
-
-                            </div>
-
-
-                            <div class="rounded-xl
-                                        bg-jorpro-canvas
-                                        border border-jorpro-line p-3">
-
-                                <div class="text-[10px]
-                                            tracking-widest
-                                            text-jorpro-mute font-bold">
-                                    DEPARTMENT / AREA
-                                </div>
-
-                                <div class="text-sm text-jorpro-slate
-                                            mt-1 break-words">
-                                    ${escapeHtml(
-                                        record.department ||
-                                        "-"
-                                    )}
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="mt-5">
-
-                            <div class="text-[10px]
-                                        tracking-widest
-                                        text-jorpro-mute
-                                        font-bold mb-2">
-                                BASIC EVENTS
-                            </div>
-
-
-                            <div class="grid grid-cols-1
-                                        md:grid-cols-2
-                                        lg:grid-cols-3 gap-3">
-
-                                ${events.map(
-                                    function(
-                                        event,
-                                        index
-                                    ) {
-
-                                        return `
-                                            <div class="
-                                                rounded-xl
-                                                bg-jorpro-canvas
-                                                border border-jorpro-line
-                                                p-3">
-
-                                                <div class="
-                                                    text-[10px]
-                                                    font-bold
-                                                    text-jorpro-blue">
-                                                    E-${
-                                                        String(
-                                                            index + 1
-                                                        ).padStart(
-                                                            2,
-                                                            "0"
-                                                        )
-                                                    }
-                                                </div>
-
-                                                <div class="
-                                                    text-sm
-                                                    font-bold
-                                                    text-jorpro-ink
-                                                    mt-1 break-words">
-                                                    ${escapeHtml(
-                                                        event.name
-                                                    )}
-                                                </div>
-
-                                                <div class="
-                                                    text-xs
-                                                    text-jorpro-mute
-                                                    mt-1 break-words">
-                                                    ${escapeHtml(
-                                                        event.description ||
-                                                        "-"
-                                                    )}
-                                                </div>
-
-                                            </div>
-                                        `;
-
-                                    }
-                                ).join("")}
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="start-analysis
-                               w-full lg:w-auto
-                               lg:min-w-[170px]
-                               h-fit px-5 py-3 rounded-xl
-                               bg-gradient-to-r
-                               from-jorpro-blue to-jorpro-blueBright
-                               text-white text-xs font-bold"
-                        data-id="${escapeHtml(
-                                record.id
-                            )}"
-                            onclick="return startAnalysisById(this.dataset.id);">
-                        START ANALYSIS →
-                    </button>
-
-                </div>
-            `;
-
-
-            list.appendChild(
-                card
-            );
-
-        }
-    );
 
 }
-
-
-document.addEventListener(
-    "click",
-    function(event) {
-
-        const button =
-            event.target.closest(
-                ".start-analysis"
-            );
-
-        if (!button) {
-            return;
-        }
-
-        event.preventDefault();
-
-        startAnalysisById(
-            button.dataset.id
-        );
-
-    }
-);
 
 
 const backBtn =

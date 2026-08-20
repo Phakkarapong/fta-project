@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
     <meta charset="UTF-8">
@@ -7,339 +7,113 @@
     <title>New FTA Analysis - JorproA</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../theme.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        jorpro: {
-                            ink: '#101828', slate: '#475467', mute: '#8A94A6',
-                            canvas: '#F3F5F9', surface: '#FFFFFF', line: '#E2E7EF',
-                            blue: '#123E7C', blueMid: '#2A5FAE', blueBright: '#2E6FE0',
-                            red: '#C21F2E', redDim: '#F6E4E5', redLight: '#FF97A0',
-                        }
-                    },
-                    fontFamily: {
-                        display: ['"Noto Sans Thai"', 'sans-serif'],
-                        sans: ['"Noto Sans Thai"', 'sans-serif'],
-                        mono: ['"IBM Plex Mono"', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .strip-topbar { background: #C21F2E; }
-        body { padding-top: 3px; }
-        button:focus-visible, select:focus-visible, input:focus-visible,
-        textarea:focus-visible, a:focus-visible {
-            outline: 2px solid #2E6FE0;
-            outline-offset: 2px;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-jorpro-canvas text-jorpro-ink font-sans min-h-screen antialiased selection:bg-jorpro-blueBright selection:text-white jorpro-page">
+<body>
 
-    <div class="strip-topbar w-full h-[3px] fixed top-0 left-0 right-0 z-50"></div>
+    <div class="app-shell">
+        <div class="main-area">
 
+            <header class="topbar" id="appTopbar"></header>
 
-    <!-- JORPROA BACKGROUND CLOUDS -->
-    <div class="jorpro-clouds" aria-hidden="true">
-        <div class="jorpro-cloud jorpro-cloud-a"></div>
-        <div class="jorpro-cloud jorpro-cloud-b"></div>
-        <div class="jorpro-cloud jorpro-cloud-c hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-d hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-e hidden lg:block"></div>
-    </div>
+            <main class="main-content" id="pageContent" style="max-width:720px;">
 
-
-
-    <div class="min-h-screen flex flex-col p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
-
-        <!-- =====================================================
-             HEADER
-             ===================================================== -->
-        <header class="flex flex-col sm:flex-row items-center justify-between p-4 rounded-2xl bg-white backdrop-blur-md border border-jorpro-line shadow-xl gap-4">
-            
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-jorpro-blue/20">
-                    <img src="../logo-icon.png" alt="JorproA logo" class="w-full h-full object-cover">
+                <div style="margin-bottom:18px;">
+                    <span class="ui-eyebrow">NEW SAFETY ANALYSIS</span>
+                    <h1 class="ui-h1">Create New FTA Analysis</h1>
+                    <p class="ui-sub">กำหนดข้อมูลเบื้องต้นสำหรับการวิเคราะห์ Fault Tree ก่อนเริ่มสร้างแผนภูมิ</p>
                 </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wider text-jorpro-ink">
-                        Jorpro<span class="text-jorpro-blue">A</span>
-                    </h1>
-                    <p class="text-xs text-jorpro-mute">
-                        Aviation Safety Analysis System
-                    </p>
-                </div>
-            </div>
 
-            <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-jorpro-canvas border border-jorpro-line text-xs font-semibold text-jorpro-slate">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>SAFETY OFFICER</span>
-            </div>
-
-        </header>
-
-
-        <!-- =====================================================
-             MAIN CONTENT
-             ===================================================== -->
-        <main class="space-y-8">
-
-            <!-- PAGE INTRO -->
-            <section class="bg-white backdrop-blur-md border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-lg">
-                <span class="text-xs font-bold tracking-widest text-jorpro-blue uppercase block mb-1">
-                    NEW SAFETY ANALYSIS
-                </span>
-                <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink mb-2">
-                    Create New FTA Analysis
-                </h2>
-                <p class="text-sm text-jorpro-slate leading-relaxed">
-                    Define the analysis scope and identify the top event before building the fault tree.
-                </p>
-                <span class="block text-xs text-jorpro-mute mt-1">
-                    กำหนดข้อมูลเบื้องต้นสำหรับการวิเคราะห์ Fault Tree
-                </span>
-            </section>
-
-
-            <!-- FORM SECTION -->
-            <section class="bg-white backdrop-blur-md border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-
-                <!-- FORM HEADER -->
-                <div class="form-section-header flex items-center space-x-4 border-b border-jorpro-line pb-5">
-                    <div class="form-section-icon w-10 h-10 rounded-xl bg-jorpro-blue/10 text-jorpro-blue border border-jorpro-blue/25 flex items-center justify-center text-xl font-bold">
-                        +
-                    </div>
-                    <div>
-                        <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase block">
-                            ANALYSIS SETUP
-                        </span>
-                        <h3 class="text-lg font-bold text-jorpro-ink">
-                            Analysis Information
-                        </h3>
-                        <span class="text-xs text-jorpro-mute block">
-                            ข้อมูลการวิเคราะห์
-                        </span>
+                <div class="ui-card ui-card-pad" style="margin-bottom:18px;">
+                    <div class="ui-stepper">
+                        <div class="ui-step active">
+                            <span class="ui-step-dot">1</span>
+                            <span class="ui-step-label">Analysis Setup</span>
+                        </div>
+                        <div class="ui-step-line"></div>
+                        <div class="ui-step">
+                            <span class="ui-step-dot">2</span>
+                            <span class="ui-step-label">Fault Tree</span>
+                        </div>
+                        <div class="ui-step-line"></div>
+                        <div class="ui-step">
+                            <span class="ui-step-dot">3</span>
+                            <span class="ui-step-label">Analysis</span>
+                        </div>
+                        <div class="ui-step-line"></div>
+                        <div class="ui-step">
+                            <span class="ui-step-dot">4</span>
+                            <span class="ui-step-label">Risk</span>
+                        </div>
                     </div>
                 </div>
 
+                <div class="ui-card ui-card-pad">
 
-                <!-- ANALYSIS TITLE -->
-                <div class="form-field space-y-1.5">
-                    <label for="analysisTitle" class="block text-sm font-semibold text-jorpro-slate">
-                        Analysis Title 
-                        <span class="text-xs text-jorpro-mute font-normal ml-1">ชื่อการวิเคราะห์</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="analysisTitle" 
-                        placeholder="Enter analysis title" 
-                        autocomplete="off"
-                        class="w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-4 py-3 text-sm text-jorpro-ink placeholder-jorpro-mute focus:outline-none focus:border-jorpro-blueBright focus:ring-1 focus:ring-jorpro-blueBright transition-all"
-                    >
-                    <small class="block text-xs text-jorpro-mute">
-                        Example: Aircraft Cabin Fire Risk Analysis
-                    </small>
-                </div>
-
-
-                <!-- ANALYSIS DATE & TIME -->
-                <div class="form-field space-y-1.5">
-                    <label for="analysisDate" class="block text-sm font-semibold text-jorpro-slate">
-                        Analysis Date & Time
-                        <span class="text-xs text-jorpro-mute font-normal ml-1">วันและเวลาที่เกิดเหตุ/วิเคราะห์</span>
-                    </label>
-                    <input
-                        type="datetime-local"
-                        id="analysisDate"
-                        class="w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-4 py-3 text-sm text-jorpro-ink focus:outline-none focus:border-jorpro-blueBright focus:ring-1 focus:ring-jorpro-blueBright transition-all"
-                    >
-                </div>
-
-
-                <!-- DEPARTMENT / AREA -->
-                <div class="form-field space-y-1.5">
-                    <label for="department" class="block text-sm font-semibold text-jorpro-slate">
-                        Department / Area
-                        <span class="text-xs text-jorpro-mute font-normal ml-1">หน่วยงาน / พื้นที่</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="department"
-                        placeholder="Enter department / area"
-                        autocomplete="off"
-                        class="w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-4 py-3 text-sm text-jorpro-ink placeholder-jorpro-mute focus:outline-none focus:border-jorpro-blueBright focus:ring-1 focus:ring-jorpro-blueBright transition-all"
-                    >
-                </div>
-
-
-                <!-- TOP EVENT -->
-                <div class="form-field space-y-1.5">
-                    <label for="topEvent" class="block text-sm font-semibold text-jorpro-slate">
-                        Top Event 
-                        <span class="text-xs text-jorpro-mute font-normal ml-1">เหตุการณ์หลัก</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="topEvent" 
-                        placeholder="Enter top event" 
-                        autocomplete="off"
-                        class="w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-4 py-3 text-sm text-jorpro-ink placeholder-jorpro-mute focus:outline-none focus:border-jorpro-blueBright focus:ring-1 focus:ring-jorpro-blueBright transition-all"
-                    >
-                    <small class="block text-xs text-jorpro-mute">
-                        Define the unwanted event that the FTA will analyze.
-                    </small>
-                </div>
-
-
-                <!-- DESCRIPTION -->
-                <div class="form-field space-y-1.5">
-                    <label for="description" class="block text-sm font-semibold text-jorpro-slate">
-                        Description 
-                        <span class="text-xs text-jorpro-mute font-normal ml-1">รายละเอียด</span>
-                    </label>
-                    <textarea 
-                        id="description" 
-                        rows="4"
-                        placeholder="Enter analysis description"
-                        class="w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-4 py-3 text-sm text-jorpro-ink placeholder-jorpro-mute focus:outline-none focus:border-jorpro-blueBright focus:ring-1 focus:ring-jorpro-blueBright transition-all resize-none"
-                    ></textarea>
-                    <small class="block text-xs text-jorpro-mute">
-                        Provide relevant background, scope or analysis assumptions.
-                    </small>
-                </div>
-
-
-                <!-- INFORMATION NOTE -->
-                <div class="form-information flex items-start space-x-3.5 p-4 rounded-xl bg-jorpro-blue/5 border border-jorpro-blue/20 text-jorpro-blueBright">
-                    <div class="form-information-icon shrink-0 w-6 h-6 rounded-full bg-jorpro-blue/20 text-jorpro-blue flex items-center justify-center font-bold text-xs border border-jorpro-blue/25 mt-0.5">
-                        i
+                    <div class="ui-field">
+                        <label for="analysisTitle" class="ui-label">Analysis Title <span class="ui-label-sub">ชื่อการวิเคราะห์</span></label>
+                        <input type="text" id="analysisTitle" placeholder="Enter analysis title" autocomplete="off" class="ui-input">
+                        <span class="ui-help">Example: Aircraft Cabin Fire Risk Analysis</span>
                     </div>
-                    <div class="space-y-0.5">
-                        <strong class="text-xs font-bold uppercase tracking-wider text-jorpro-blueBright block">
-                            Before you continue
-                        </strong>
-                        <p class="text-xs text-jorpro-slate leading-normal">
+
+                    <div class="ui-field">
+                        <label for="analysisDate" class="ui-label">Analysis Date &amp; Time <span class="ui-label-sub">วันและเวลาที่เกิดเหตุ/วิเคราะห์</span></label>
+                        <input type="datetime-local" id="analysisDate" class="ui-input">
+                    </div>
+
+                    <div class="ui-field">
+                        <label for="department" class="ui-label">Department / Area <span class="ui-label-sub">หน่วยงาน / พื้นที่</span></label>
+                        <input type="text" id="department" placeholder="Enter department / area" autocomplete="off" class="ui-input">
+                    </div>
+
+                    <div class="ui-field">
+                        <label for="topEvent" class="ui-label">Top Event <span class="ui-label-sub">เหตุการณ์หลัก</span></label>
+                        <input type="text" id="topEvent" placeholder="Enter top event" autocomplete="off" class="ui-input">
+                        <span class="ui-help">Define the unwanted event that the FTA will analyze.</span>
+                    </div>
+
+                    <div class="ui-field" style="margin-bottom:20px;">
+                        <label for="description" class="ui-label">Description <span class="ui-label-sub">รายละเอียด</span></label>
+                        <textarea id="description" rows="4" placeholder="Enter analysis description" class="ui-textarea"></textarea>
+                        <span class="ui-help">Provide relevant background, scope or analysis assumptions.</span>
+                    </div>
+
+                    <div class="ui-note" style="margin-bottom:22px;">
+                        <span id="icoInfo"></span>
+                        <div>
+                            <strong style="display:block;">Before you continue</strong>
                             Make sure the Top Event is clearly defined. You can build and modify the Fault Tree in the next step.
-                        </p>
-                        <span class="text-[11px] text-jorpro-blue block">
-                            ตรวจสอบว่า Top Event มีความชัดเจน ก่อนเข้าสู่ขั้นตอนการสร้าง Fault Tree
-                        </span>
+                            <div style="margin-top:4px;">ตรวจสอบว่า Top Event มีความชัดเจน ก่อนเข้าสู่ขั้นตอนการสร้าง Fault Tree</div>
+                        </div>
                     </div>
-                </div>
 
-
-                <!-- BUTTONS -->
-                <div class="flex items-center justify-between pt-4 border-t border-jorpro-line gap-4">
-                    <button 
-                        id="backBtn" 
-                        class="group inline-flex items-center space-x-2 bg-jorpro-canvas hover:bg-slate-100 text-jorpro-slate border border-jorpro-line px-5 py-2.5 rounded-xl font-semibold text-xs transition-all" 
-                        type="button"
-                    >
-                        <span class="group-hover:-translate-x-1 transition-transform">←</span>
-                        <span>BACK</span>
-                    </button>
-
-                    <button 
-                        id="createFtaBtn" 
-                        class="group inline-flex items-center space-x-2 bg-gradient-to-r from-jorpro-blue to-jorpro-blueBright hover:from-jorpro-blueBright hover:to-jorpro-blue text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-jorpro-blue/20 transition-all" 
-                        type="button"
-                    >
-                        <span>CREATE FTA</span>
-                        <span class="group-hover:translate-x-1 transition-transform">→</span>
-                    </button>
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 PROGRESS STEPPER
-                 ================================================= -->
-            <section class="analysis-progress flex items-center justify-between bg-white border border-jorpro-line rounded-2xl p-4 md:p-6 overflow-x-auto">
-                
-                <!-- STEP 1 (ACTIVE) -->
-                <div class="progress-step active flex items-center space-x-3 shrink-0">
-                    <span class="w-8 h-8 rounded-xl bg-jorpro-blue text-white font-bold flex items-center justify-center text-sm shadow-lg shadow-jorpro-blue/20">
-                        1
-                    </span>
-                    <div class="flex flex-col">
-                        <strong class="text-xs font-bold text-jorpro-blue">
-                            Analysis Setup
-                        </strong>
-                        <small class="text-[10px] text-jorpro-mute">
-                            Define analysis information
-                        </small>
+                    <div class="ui-sticky-actions">
+                        <button id="backBtn" type="button" class="ui-btn ui-btn-secondary">← BACK</button>
+                        <button id="createFtaBtn" type="button" class="ui-btn ui-btn-primary">CREATE FTA →</button>
                     </div>
+                    <div class="ui-sticky-spacer"></div>
+
                 </div>
 
-                <div class="progress-line flex-1 min-w-[30px] h-0.5 bg-jorpro-blue/50 mx-4"></div>
+            </main>
 
-                <!-- STEP 2 -->
-                <div class="progress-step flex items-center space-x-3 opacity-50 shrink-0">
-                    <span class="w-8 h-8 rounded-xl bg-jorpro-canvas text-jorpro-mute font-bold flex items-center justify-center text-sm border border-jorpro-line">
-                        2
-                    </span>
-                    <div class="flex flex-col">
-                        <strong class="text-xs font-bold text-jorpro-slate">
-                            Fault Tree
-                        </strong>
-                        <small class="text-[10px] text-jorpro-mute">
-                            Build event logic
-                        </small>
-                    </div>
-                </div>
-
-                <div class="progress-line flex-1 min-w-[30px] h-0.5 bg-jorpro-canvas mx-4"></div>
-
-                <!-- STEP 3 -->
-                <div class="progress-step flex items-center space-x-3 opacity-50 shrink-0">
-                    <span class="w-8 h-8 rounded-xl bg-jorpro-canvas text-jorpro-mute font-bold flex items-center justify-center text-sm border border-jorpro-line">
-                        3
-                    </span>
-                    <div class="flex flex-col">
-                        <strong class="text-xs font-bold text-jorpro-slate">
-                            Analysis
-                        </strong>
-                        <small class="text-[10px] text-jorpro-mute">
-                            Calculate probability
-                        </small>
-                    </div>
-                </div>
-
-                <div class="progress-line flex-1 min-w-[30px] h-0.5 bg-jorpro-canvas mx-4"></div>
-
-                <!-- STEP 4 -->
-                <div class="progress-step flex items-center space-x-3 opacity-50 shrink-0">
-                    <span class="w-8 h-8 rounded-xl bg-jorpro-canvas text-jorpro-mute font-bold flex items-center justify-center text-sm border border-jorpro-line">
-                        4
-                    </span>
-                    <div class="flex flex-col">
-                        <strong class="text-xs font-bold text-jorpro-slate">
-                            Risk
-                        </strong>
-                        <small class="text-[10px] text-jorpro-mute">
-                            Assess risk
-                        </small>
-                    </div>
-                </div>
-
-            </section>
-
-        </main>
-
+        </div>
     </div>
+
+    <script src="../icons.js"></script>
+    <script src="../notify.js"></script>
+    <script src="../shell.js"></script>
+    <script>
+        Shell.mount({ role: "safety-officer", active: "new", title: "New Analysis" });
+        document.getElementById("icoInfo").innerHTML = Icon("check-circle", "", 16);
+    </script>
 
     <script src="new-analysis.js"></script>
 </body>

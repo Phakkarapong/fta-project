@@ -96,7 +96,8 @@ if (createFtaBtn) {
                 !topEvent
             ) {
 
-                alert(
+                Notify.warn(
+                    "กรุณากรอก Analysis Title, Department / Area, วันเวลา และ Top Event ให้ครบถ้วน",
                     "Please enter Analysis Title, Department / Area, Date & Time, and Top Event."
                 );
 

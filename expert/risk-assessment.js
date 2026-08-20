@@ -15,6 +15,14 @@ function escapeHtml(value) {
 }
 
 
+function riskBadgeClassFor(riskLevel) {
+    if (riskLevel === "LOW") return "status-badge-green";
+    if (riskLevel === "MEDIUM") return "status-badge-amber";
+    if (riskLevel === "HIGH") return "status-badge-red";
+    return "status-badge-red";
+}
+
+
 // =====================================================
 // RISK LIKELIHOOD
 // =====================================================
@@ -1069,68 +1077,12 @@ function renderAssessmentStatus() {
             )
         );
 
+    // Per-event assessed/pending detail now lives entirely in the single
+    // table rendered by renderFinalAssessmentSummary() below — this list
+    // no longer duplicates it (was a second, simpler card list showing
+    // the same assessed/pending state a third time on this page).
     if (list) {
-
         list.innerHTML = "";
-
-        targets.forEach(
-            function (target) {
-
-                const saved =
-                    savedIds.has(
-                        String(target.id)
-                    );
-
-                const record =
-                    savedAssessments.find(
-                        function (item) {
-                            return String(
-                                item.eventId
-                            ) === String(
-                                target.id
-                            );
-                        }
-                    );
-
-                const card =
-                    document.createElement(
-                        "div"
-                    );
-
-                card.className =
-                    saved
-                        ? "rounded-xl border border-emerald-200 bg-emerald-500/5 p-4"
-                        : "rounded-xl border border-jorpro-line bg-jorpro-canvas p-4";
-
-                card.innerHTML = `
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <div class="text-xs font-bold ${
-                                saved
-                                    ? "text-emerald-600"
-                                    : "text-jorpro-mute"
-                            }">
-                                ${saved ? "✓ ASSESSED" : "○ PENDING"}
-                            </div>
-                            <div class="text-sm font-semibold text-jorpro-ink mt-1 break-words">
-                                ${escapeHtml(target.name)}
-                            </div>
-                        </div>
-                        ${
-                            saved
-                                ? `<div class="text-xs font-bold text-emerald-600">
-                                    ${escapeHtml(record?.riskLevel || "")}
-                                   </div>`
-                                : ""
-                        }
-                    </div>
-                `;
-
-                list.appendChild(card);
-
-            }
-        );
-
     }
 
     const assessedIds =
@@ -1342,198 +1294,61 @@ function renderFinalAssessmentSummary() {
         return;
     }
 
-    table.innerHTML = "";
-
-    targets.forEach(
-        function(target, index) {
+    // One real table (was: a card-grid duplicating #savedEventList above,
+    // plus a separate "pending" list below repeating the same events again).
+    // Each row's "ประเมิน" action jumps to the scoring panel with that
+    // event preselected.
+    const rowsHtml = targets.map(
+        function (target, index) {
 
             const assessment =
                 savedAssessments.find(
-                    function(item) {
-                        return String(
-                            item.eventId
-                        ) === String(
-                            target.id
-                        );
+                    function (item) {
+                        return String(item.eventId) === String(target.id);
                     }
                 );
 
-            const assessed =
-                !!assessment;
+            const assessed = !!assessment;
+            const riskClass = assessed ? riskBadgeClassFor(assessment.riskLevel) : "status-badge-slate";
 
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-            card.className =
-                assessed
-                    ? "rounded-xl border border-emerald-500/25 bg-jorpro-canvas p-4"
-                    : "rounded-xl border border-jorpro-line bg-jorpro-canvas p-4";
-
-            card.innerHTML = `
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-
-                    <div class="min-w-0">
-                        <div class="text-[10px] font-bold tracking-widest ${
-                            assessed
-                                ? "text-emerald-600"
-                                : "text-jorpro-mute"
-                        }">
-                            ${
-                                assessed
-                                    ? "✓ ASSESSED"
-                                    : "○ PENDING"
-                            }
-                        </div>
-
-                        <div class="text-sm font-bold text-jorpro-ink mt-1 break-words">
-                            ${String(index + 1).padStart(2, "0")}. ${
-                                escapeHtml(
-                                    target.name
-                                )
-                            }
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 lg:min-w-[460px]">
-
-                        <div class="rounded-lg bg-white border border-jorpro-line px-3 py-2">
-                            <div class="text-[10px] text-jorpro-mute">Likelihood</div>
-                            <div class="text-xs font-bold text-jorpro-ink">
-                                ${
-                                    assessed
-                                        ? escapeHtml(
-                                            `${assessment.likelihood} - ${assessment.likelihoodName}`
-                                        )
-                                        : "-"
-                                }
-                            </div>
-                        </div>
-
-                        <div class="rounded-lg bg-white border border-jorpro-line px-3 py-2">
-                            <div class="text-[10px] text-jorpro-mute">Severity</div>
-                            <div class="text-xs font-bold text-jorpro-ink">
-                                ${
-                                    assessed
-                                        ? escapeHtml(
-                                            `${assessment.severity} - ${assessment.severityName}`
-                                        )
-                                        : "-"
-                                }
-                            </div>
-                        </div>
-
-                        <div class="rounded-lg bg-white border border-jorpro-line px-3 py-2">
-                            <div class="text-[10px] text-jorpro-mute">Score</div>
-                            <div class="text-xs font-bold text-jorpro-blue">
-                                ${
-                                    assessed
-                                        ? escapeHtml(
-                                            assessment.referenceScore
-                                        )
-                                        : "-"
-                                }
-                            </div>
-                        </div>
-
-                        <div class="rounded-lg bg-white border border-jorpro-line px-3 py-2">
-                            <div class="text-[10px] text-jorpro-mute">Risk</div>
-                            <div class="text-xs font-bold ${
-                                assessed
-                                    ? assessment.riskLevel === "HIGH"
-                                        ? "text-orange-600"
-                                        : assessment.riskLevel === "MEDIUM"
-                                            ? "text-yellow-300"
-                                            : assessment.riskLevel === "LOW"
-                                                ? "text-emerald-600"
-                                                : "text-jorpro-red"
-                                    : "text-jorpro-mute"
-                            }">
-                                ${
-                                    assessed
-                                        ? escapeHtml(
-                                            assessment.riskLevel
-                                        )
-                                        : "-"
-                                }
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
+            return `
+                <tr>
+                    <td style="width:36px;color:var(--muted);">${String(index + 1).padStart(2, "0")}</td>
+                    <td style="font-weight:800;color:var(--ink);">${escapeHtml(target.name)}</td>
+                    <td><span class="status-badge ${assessed ? "status-badge-green" : "status-badge-amber"}">${assessed ? "ASSESSED" : "PENDING"}</span></td>
+                    <td>${assessed ? escapeHtml(`${assessment.likelihood} - ${assessment.likelihoodName}`) : "-"}</td>
+                    <td>${assessed ? escapeHtml(`${assessment.severity} - ${assessment.severityName}`) : "-"}</td>
+                    <td style="font-weight:800;color:var(--ac);">${assessed ? escapeHtml(assessment.referenceScore) : "-"}</td>
+                    <td>${assessed ? `<span class="status-badge ${riskClass}">${escapeHtml(assessment.riskLevel)}</span>` : "-"}</td>
+                    <td class="text-right">
+                        <button type="button" class="dt-action-btn dt-action-btn-primary select-assessment-target" data-id="${escapeHtml(target.id)}">
+                            ${window.Icon ? window.Icon("edit", "", 12) : ""}<span>ประเมิน</span>
+                        </button>
+                    </td>
+                </tr>
             `;
-
-            table.appendChild(
-                card
-            );
-
         }
-    );
+    ).join("");
 
+    table.innerHTML = `
+        <div class="data-table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Event</th><th>Status</th><th>Likelihood</th><th>Severity</th>
+                        <th>Score</th><th>Risk Level</th><th class="text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+    `;
 
-    const savedIds =
-        new Set(
-            savedAssessments.map(
-                function(item) {
-                    return String(
-                        item.eventId
-                    );
-                }
-            )
-        );
-
-    const pendingTargets =
-        targets.filter(
-            function(target) {
-                return !savedIds.has(
-                    String(target.id)
-                );
-            }
-        );
-
-    if (pendingPanel && pendingList) {
-
-        if (pendingTargets.length > 0) {
-
-            pendingPanel.classList.remove("hidden");
-
-            pendingList.innerHTML = "";
-
-            pendingTargets.forEach(
-                function(target, index) {
-
-                    const item =
-                        document.createElement("div");
-
-                    item.className =
-                        "flex items-center gap-3 rounded-lg border border-amber-200 bg-jorpro-canvas px-3 py-2";
-
-                    item.innerHTML = `
-                        <span class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center text-[11px] font-bold">
-                            ${String(index + 1).padStart(2, "0")}
-                        </span>
-                        <div class="text-sm text-jorpro-slate break-words">
-                            ${escapeHtml(target.name)}
-                        </div>
-                        <span class="ml-auto text-[10px] font-bold tracking-wider text-amber-600">
-                            PENDING
-                        </span>
-                    `;
-
-                    pendingList.appendChild(item);
-
-                }
-            );
-
-        } else {
-
-            pendingPanel.classList.add("hidden");
-            pendingList.innerHTML = "";
-
-        }
-
+    if (pendingPanel) {
+        pendingPanel.classList.add("hidden");
+    }
+    if (pendingList) {
+        pendingList.innerHTML = "";
     }
 
 
@@ -1699,7 +1514,8 @@ if (saveRiskBtn) {
                 !severity
             ) {
 
-                alert(
+                Notify.warn(
+                    "กรุณาเลือก Event, Likelihood และ Severity",
                     "Please select Event, Likelihood and Severity."
                 );
 
@@ -1750,7 +1566,8 @@ if (saveRiskBtn) {
 
             if (!riskLevel) {
 
-                alert(
+                Notify.error(
+                    "ไม่สามารถคำนวณช่องใน Risk Matrix ที่เลือกได้",
                     "Unable to calculate the selected Risk Matrix cell."
                 );
 
@@ -1868,12 +1685,11 @@ if (saveRiskBtn) {
 
             }
 
-            // IMPORTANT: confirm immediately.
-            alert(
-                "✓ ASSESSED\n" +
-                assessment.eventName +
-                "\n" +
-                assessment.riskLevel
+            // Non-blocking toast — fires on every event save, so a
+            // blocking modal here would get in the way of scoring the
+            // next event quickly.
+            Notify.toast(
+                "✓ " + assessment.eventName + " — " + assessment.riskLevel
             );
 
             try {
@@ -1974,7 +1790,8 @@ if (finishBtn) {
 
             if (missing.length > 0) {
 
-                alert(
+                Notify.warn(
+                    `กรุณาประเมินอีก ${missing.length} Event(s) ที่เหลือก่อนสรุปผลการวิเคราะห์`,
                     `Please complete ${missing.length} remaining Event(s) before Final Analysis.`
                 );
 
@@ -2333,6 +2150,21 @@ if (refreshRiskAssessmentBtn) {
     );
 
 }
+
+
+// Row action from the assessment table — pre-select that event in the
+// scoring panel above and scroll it into view.
+document.addEventListener("click", function (event) {
+    const btn = event.target.closest(".select-assessment-target");
+    if (!btn) return;
+
+    const select = document.getElementById("eventSelect");
+    if (!select) return;
+
+    select.value = btn.dataset.id;
+    select.dispatchEvent(new Event("change"));
+    select.scrollIntoView({ behavior: "smooth", block: "center" });
+});
 
 
 // =====================================================

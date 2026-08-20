@@ -50,12 +50,13 @@ function loadAnalysis() {
 
     if (!analysisData) {
 
-        alert(
+        Notify.error(
+            "ไม่พบข้อมูลการวิเคราะห์",
             "Analysis data was not found."
-        );
-
-        window.location.href =
-            "new-analysis.html";
+        ).then(function () {
+            window.location.href =
+                "new-analysis.html";
+        });
 
         return false;
     }
@@ -183,54 +184,34 @@ function render() {
             "eventList"
         );
 
-    list.innerHTML = "";
-
     if (events.length === 0) {
 
         list.innerHTML = `
-            <div class="col-span-full p-6 rounded-xl
-                        bg-jorpro-canvas border border-dashed border-jorpro-line
-                        text-center text-sm text-jorpro-mute">
-                No Basic Events recorded.
-            </div>
+            <div class="dt-empty">No Basic Events recorded.</div>
         `;
 
     } else {
 
-        events.forEach(
-            function(event, index) {
-
-                const card =
-                    document.createElement(
-                        "div"
-                    );
-
-                card.className =
-                    "rounded-xl border border-jorpro-line bg-jorpro-canvas p-4";
-
-                card.innerHTML = `
-                    <div class="text-[10px] font-bold tracking-widest text-jorpro-blue">
-                        E-${String(index + 1).padStart(2, "0")}
-                    </div>
-
-                    <div class="font-bold text-jorpro-ink mt-2 break-words">
-                        ${escapeHtml(
-                            event.name
-                        )}
-                    </div>
-
-                    <p class="text-xs text-jorpro-mute mt-2 leading-relaxed break-words">
-                        ${escapeHtml(
-                            event.description ||
-                            "-"
-                        )}
-                    </p>
+        const rows = events.map(
+            function (event, index) {
+                return `
+                    <tr>
+                        <td style="width:70px;"><span class="status-badge status-badge-blue">E-${String(index + 1).padStart(2, "0")}</span></td>
+                        <td style="font-weight:800;color:var(--ink);">${escapeHtml(event.name)}</td>
+                        <td style="color:var(--muted);">${escapeHtml(event.description || "-")}</td>
+                    </tr>
                 `;
-
-                list.appendChild(card);
-
             }
-        );
+        ).join("");
+
+        list.innerHTML = `
+            <div class="data-table-scroll">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Name</th><th>Description</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
 
     }
 
@@ -341,7 +322,8 @@ document
                 !analysisData.topEvent
             ) {
 
-                alert(
+                Notify.warn(
+                    "กรุณากรอก Analysis Title และ Top Event",
                     "Analysis Title and Top Event are required."
                 );
 
@@ -351,7 +333,8 @@ document
 
             if (!analysisData.department) {
 
-                alert(
+                Notify.warn(
+                    "กรุณากรอก Department / Area",
                     "Department / Area is required."
                 );
 
@@ -361,7 +344,8 @@ document
 
             if (!analysisData.analysisDate) {
 
-                alert(
+                Notify.warn(
+                    "กรุณากรอกวันและเวลาของการวิเคราะห์",
                     "Analysis Date & Time is required."
                 );
 
@@ -371,7 +355,8 @@ document
 
             if (events.length === 0) {
 
-                alert(
+                Notify.warn(
+                    "กรุณาเพิ่ม Basic Event อย่างน้อย 1 รายการก่อนส่ง",
                     "Please add at least one Basic Event before submitting."
                 );
 
@@ -390,7 +375,8 @@ document
 
             if (invalidEvent) {
 
-                alert(
+                Notify.warn(
+                    "ทุก Basic Event ต้องมีชื่อ",
                     "Every Basic Event must have a name."
                 );
 
@@ -558,15 +544,17 @@ document
             );
 
 
-            alert(
+            Notify.success(
+                "ส่งข้อมูล FTA ให้ผู้เชี่ยวชาญเรียบร้อยแล้ว",
                 "FTA data submitted to Expert successfully."
-            );
+            ).then(function () {
 
+                // Same folder: safety-officer/analysis-history.html
+                window.location.assign(
+                    "analysis-history.html"
+                );
 
-            // Same folder: safety-officer/analysis-history.html
-            window.location.assign(
-                "analysis-history.html"
-            );
+            });
 
         }
     );

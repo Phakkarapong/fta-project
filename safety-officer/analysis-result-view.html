@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,17 +7,18 @@
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="../style.css">
 
     <!-- SheetJS (client-side .xlsx export, no server needed) -->
     <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
     <!-- Chart.js (client-side dashboard charts, no server needed) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
+    <!-- SweetAlert2 (notifications) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -25,536 +26,283 @@
                 extend: {
                     colors: {
                         jorpro: {
-                            ink: '#101828', slate: '#475467', mute: '#8A94A6',
-                            canvas: '#F3F5F9', surface: '#FFFFFF', line: '#E2E7EF',
-                            blue: '#123E7C', blueMid: '#2A5FAE', blueBright: '#2E6FE0',
-                            red: '#C21F2E', redDim: '#F6E4E5', redLight: '#FF97A0',
+                            ink: '#0F172A', slate: '#475569', mute: '#94A3B8',
+                            canvas: '#F8FAFC', surface: '#FFFFFF', line: '#E2E8F0',
+                            blue: '#4F46E5', blueMid: '#4338CA', blueBright: '#6366F1',
+                            red: '#E11D48', redDim: '#FFF1F2', redLight: '#FDA4AF',
                         }
                     },
                     fontFamily: {
-                        display: ['"Noto Sans Thai"', 'sans-serif'],
-                        sans: ['"Noto Sans Thai"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', '"Noto Sans Thai"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', '"Noto Sans Thai"', 'sans-serif'],
                         mono: ['"IBM Plex Mono"', 'monospace'],
                     }
                 }
             }
         }
     </script>
-    <style>
-        .strip-topbar { background: #C21F2E; }
-        body { padding-top: 3px; }
-        button:focus-visible, select:focus-visible, input:focus-visible,
-        textarea:focus-visible, a:focus-visible {
-            outline: 2px solid #2E6FE0;
-            outline-offset: 2px;
-        }
 
-        /* style.css forces "position: relative" on every direct
-           child of <body class="jorpro-page"> (for the cloud
-           stacking layer). The dashboard modal is such a direct
-           child but must stay truly fixed/on top of everything,
-           so it needs an explicit override here. */
-        #dashboardModal {
-            position: fixed !important;
-            inset: 0 !important;
-            z-index: 60 !important;
-        }
+    <link rel="stylesheet" href="../theme.css">
+    <style>
+        #dashboardModal { position: fixed !important; inset: 0 !important; z-index: 60 !important; }
     </style>
 </head>
 
-<body class="bg-jorpro-canvas text-jorpro-ink min-h-screen font-sans jorpro-page">
+<body>
 
-    <div class="strip-topbar w-full h-[3px] fixed top-0 left-0 right-0 z-50"></div>
+    <div class="app-shell">
+        <div class="main-area">
+
+            <header class="topbar" id="appTopbar"></header>
+
+            <main class="main-content" id="pageContent">
+
+<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+    <button id="dashboardBtn" type="button" class="ui-btn ui-btn-secondary ui-btn-sm">
+        <span id="icoChart"></span> Dashboard
+    </button>
+    <button id="exportExcelBtn" type="button" class="ui-btn ui-btn-secondary ui-btn-sm">
+        <span id="icoDownload"></span> Export Excel
+    </button>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px;">
+
+    <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+            <div>
+                <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">ANALYSIS RESULT</span>
+                <h2 id="analysisTitle" class="text-2xl md:text-3xl font-extrabold text-jorpro-ink mt-1">-</h2>
+                <p id="description" class="text-sm text-jorpro-mute mt-2 leading-relaxed">-</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 min-w-[260px]">
+                <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line p-3">
+                    <div class="text-[9px] font-bold tracking-widest text-jorpro-mute">TOP EVENT</div>
+                    <div id="topEvent" class="text-sm font-bold text-jorpro-blueBright mt-1">-</div>
+                </div>
+                <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line p-3">
+                    <div class="text-[9px] font-bold tracking-widest text-jorpro-mute">STATUS</div>
+                    <div id="status" class="text-sm font-bold text-emerald-600 mt-1">-</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
 
-    <!-- JORPROA BACKGROUND CLOUDS -->
-    <div class="jorpro-clouds" aria-hidden="true">
-        <div class="jorpro-cloud jorpro-cloud-a"></div>
-        <div class="jorpro-cloud jorpro-cloud-b"></div>
-        <div class="jorpro-cloud jorpro-cloud-c hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-d hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-e hidden lg:block"></div>
+    <!-- FTA RESULT -->
+    <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
+        <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
+            <div class="w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue">%</div>
+            <div>
+                <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase">FAULT TREE ANALYSIS</span>
+                <h3 class="text-lg font-bold text-jorpro-ink">FTA Analysis Result</h3>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line p-4">
+                <div class="text-[10px] tracking-widest text-jorpro-mute font-bold">MAIN GATE</div>
+                <div id="mainGate" class="text-lg font-black text-jorpro-ink mt-2">-</div>
+            </div>
+            <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
+                <div class="text-[10px] tracking-widest text-emerald-600 font-bold">TOP EVENT PROBABILITY</div>
+                <div id="ftaPercentage" class="text-2xl font-black text-emerald-600 mt-2">-</div>
+            </div>
+            <div class="rounded-xl bg-jorpro-blue/5 border border-jorpro-blue/20 p-4">
+                <div class="text-[10px] tracking-widest text-jorpro-blue font-bold">BASIC EVENTS</div>
+                <div id="basicEventCount" class="text-lg font-black text-jorpro-ink mt-2">0</div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- RISK RESULT -->
+    <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
+        <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+                <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase">FAA RISK ASSESSMENT</span>
+                <h3 class="text-lg font-bold text-jorpro-ink mt-1">Risk Assessment Result</h3>
+            </div>
+            <span id="riskCompletionBadge" class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-xs font-bold text-jorpro-slate">0 / 0 EVENTS</span>
+        </div>
+
+        <div class="ui-note" style="margin-bottom:20px;">
+            <div>
+                <strong style="display:block;">Expert Initial Risk (reference only)</strong>
+                <p style="margin:4px 0 0;">
+                    This is the Expert's raw Likelihood × Severity lookup, shown here for context. The Safety Officer's own Weighted Risk Scoring is calculated separately below.
+                    <span style="display:block;margin-top:4px;">นี่คือผล Likelihood × Severity ดิบจาก Expert แสดงไว้เพื่ออ้างอิงเท่านั้น ส่วนคะแนนความเสี่ยงอย่างเป็นทางการของ Safety Officer คำนวณแยกไว้ด้านล่าง</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+            <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                <span class="text-[11px] text-jorpro-mute block">Highest Risk</span>
+                <strong id="highestRiskLevel" class="text-lg font-black text-jorpro-slate block mt-1">-</strong>
+            </div>
+            <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                <span class="text-[11px] text-jorpro-mute block">Events Needing SO Review</span>
+                <strong id="mitigationEventCount" class="text-lg font-black text-jorpro-slate block mt-1">0</strong>
+            </div>
+            <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                <span class="text-[11px] text-jorpro-mute block">Overall Initial Risk</span>
+                <strong id="overallAcceptability" class="text-lg font-black text-jorpro-slate block mt-1">-</strong>
+            </div>
+        </div>
+
+        <div class="data-table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Event</th><th>Likelihood</th><th>Severity</th><th>Risk Index</th><th>Initial Risk Level</th><th>SO Weighted Scoring</th>
+                    </tr>
+                </thead>
+                <tbody id="riskAssessmentTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+
+    <!-- SAFETY OFFICER WEIGHTED RISK SCORING -->
+    <section class="bg-white border border-jorpro-blue/25 rounded-2xl p-6 md:p-8 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+            <div>
+                <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">SAFETY OFFICER SCORING</span>
+                <h3 class="text-lg font-bold text-jorpro-ink mt-1">Weighted Risk Scoring</h3>
+                <p class="text-xs text-jorpro-mute mt-1">ผลการให้คะแนนความเสี่ยงอย่างเป็นทางการของ Safety Officer ด้วยวิธี Weighted Euclidean Distance</p>
+            </div>
+            <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line px-4 py-3 font-mono text-xs text-jorpro-slate whitespace-nowrap self-start">
+                RI&nbsp;=&nbsp;√(0.70·S² + 0.30·L²)
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-5 text-xs text-amber-700 leading-relaxed">
+            <strong class="font-bold">หมายเหตุ:</strong>
+            ช่วงคะแนนและระดับความเสี่ยงด้านล่างเป็นเกณฑ์ที่เสนอสำหรับระบบ FTA Tools ของ JorproA (จากช่วงค่า Weighted Euclidean Index) ไม่ใช่มาตรฐาน ICAO โดยตรง และควรได้รับการทบทวน/ยืนยันโดยผู้เชี่ยวชาญด้านความปลอดภัยก่อนนำไปใช้จริง
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+            <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                <span class="text-[11px] text-jorpro-mute block">Highest SO Risk Level</span>
+                <strong id="soHighestRiskLevel" class="text-lg font-black text-jorpro-slate block mt-1">-</strong>
+            </div>
+            <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                <span class="text-[11px] text-jorpro-mute block">High Risk or Above</span>
+                <strong id="soHighPriorityCount" class="text-lg font-black text-jorpro-slate block mt-1">0</strong>
+            </div>
+            <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                <span class="text-[11px] text-jorpro-mute block">Events Scored</span>
+                <strong id="soScoredCount" class="text-lg font-black text-jorpro-slate block mt-1">0 / 0</strong>
+            </div>
+        </div>
+
+        <div class="data-table-scroll">
+            <table class="data-table" style="min-width:900px;">
+                <thead>
+                    <tr>
+                        <th>Priority</th><th>Basic Event</th><th>L</th><th>S</th><th>Weights (S / L)</th><th>Risk Index (RI)</th><th>SO Risk Level</th><th>Recommended Action</th>
+                    </tr>
+                </thead>
+                <tbody id="soRiskScoringTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+
+    <!-- SAFETY CONTROLS -->
+    <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
+        <div class="flex items-start justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
+            <div>
+                <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase">SAFETY CONTROLS</span>
+                <h3 class="text-lg font-bold text-jorpro-ink mt-1">Mitigation &amp; Risk Ownership</h3>
+                <p class="text-xs text-jorpro-mute mt-1">ข้อมูลที่ Safety Officer สามารถตรวจสอบได้เท่านั้น</p>
+            </div>
+            <span class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-600">READ ONLY</span>
+        </div>
+        <div id="safetyControlsByEvent" style="display:flex;flex-direction:column;gap:14px;"></div>
+    </section>
+
+
+    <section class="flex justify-between gap-3 pt-2">
+        <button id="backBtn" type="button" class="ui-btn ui-btn-secondary">← BACK TO DASHBOARD</button>
+        <div class="text-[10px] text-jorpro-mute flex items-center">
+            Weighted Risk Scoring (Priority, Risk Index and Risk Level) is included in the Dashboard and the Excel export.
+        </div>
+    </section>
+
+</div>
+
+            </main>
+
+        </div>
     </div>
 
 
-<div class="max-w-7xl mx-auto px-4 py-6 md:py-8">
-
-    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-jorpro-line">
-
-        <div class="flex items-center gap-3">
-
-            <div class="w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center"><img src="../logo-icon.png" alt="JorproA logo" class="w-full h-full object-cover"></div>
-
-            <div>
-                <h1 class="text-xl font-bold tracking-wider">
-                    Jorpro<span class="text-jorpro-blue">A</span>
-                </h1>
-
-                <p class="text-xs text-jorpro-mute">
-                    Safety Officer — Score Initial Risk &amp; Finalize
-                </p>
-            </div>
-
-        </div>
-
-        <div class="flex items-center gap-2">
-
-            <button id="dashboardBtn"
-                    type="button"
-                    class="px-4 py-2.5 rounded-xl bg-jorpro-blue/10 hover:bg-jorpro-blue/20
-                           border border-jorpro-blue/25 text-xs font-bold text-jorpro-blueBright">
-                📊 DASHBOARD
-            </button>
-
-            <button id="exportExcelBtn"
-                    type="button"
-                    class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100
-                           border border-emerald-200 text-xs font-bold text-emerald-700">
-                ⬇ EXPORT EXCEL
-            </button>
-
-            <div class="px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-600">
-                WEIGHTED RISK SCORING
-            </div>
-
-        </div>
-
-    </header>
-
-
-    <main class="space-y-6 mt-6">
-
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8">
-            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-
+    <!-- RISK DASHBOARD MODAL -->
+    <div id="dashboardModal" class="hidden" style="background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);padding:16px;overflow-y:auto;">
+        <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl border border-jorpro-line">
+            <div class="flex items-start justify-between gap-4 p-5 md:p-6 border-b border-jorpro-line">
                 <div>
-                    <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">
-                        ANALYSIS RESULT
-                    </span>
-
-                    <h2 id="analysisTitle"
-                        class="text-2xl md:text-3xl font-extrabold text-jorpro-ink mt-1">
-                        -
-                    </h2>
-
-                    <p id="description"
-                       class="text-sm text-jorpro-mute mt-2 leading-relaxed">
-                        -
-                    </p>
+                    <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">RISK DASHBOARD</span>
+                    <h2 id="dashboardAnalysisTitle" class="text-xl md:text-2xl font-extrabold text-jorpro-ink mt-1">-</h2>
+                    <p class="text-xs text-jorpro-mute mt-1">Safety Officer Weighted Risk Scoring — สรุปเชิงภาพรวมแบบ Dashboard</p>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3 min-w-[260px]">
-
-                    <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-mute">
-                            TOP EVENT
-                        </div>
-                        <div id="topEvent"
-                             class="text-sm font-bold text-jorpro-blueBright mt-1">
-                            -
-                        </div>
-                    </div>
-
-                    <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-mute">
-                            STATUS
-                        </div>
-                        <div id="status"
-                             class="text-sm font-bold text-emerald-600 mt-1">
-                            -
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- FTA RESULT -->
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8">
-
-            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                <div class="w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue">
-                    %
-                </div>
-
-                <div>
-                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase">
-                        FAULT TREE ANALYSIS
-                    </span>
-
-                    <h3 class="text-lg font-bold text-jorpro-ink">
-                        FTA Analysis Result
-                    </h3>
-                </div>
+                <button id="dashboardCloseBtn" type="button" aria-label="Close dashboard" class="ui-btn ui-btn-secondary ui-btn-sm">✕</button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line p-4">
-                    <div class="text-[10px] tracking-widest text-jorpro-mute font-bold">
-                        MAIN GATE
+            <div class="p-5 md:p-6" style="display:flex;flex-direction:column;gap:20px;">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                        <span class="text-[10px] text-jorpro-mute block">Events Scored</span>
+                        <strong id="kpiScoredCount" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
                     </div>
-                    <div id="mainGate"
-                         class="text-lg font-black text-jorpro-ink mt-2">
-                        -
+                    <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                        <span class="text-[10px] text-jorpro-mute block">Highest SO Risk</span>
+                        <strong id="kpiHighestRisk" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
+                    </div>
+                    <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                        <span class="text-[10px] text-jorpro-mute block">High Risk or Above</span>
+                        <strong id="kpiHighCount" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
+                    </div>
+                    <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
+                        <span class="text-[10px] text-jorpro-mute block">Average Risk Index</span>
+                        <strong id="kpiAvgRi" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
                     </div>
                 </div>
 
-                <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
-                    <div class="text-[10px] tracking-widest text-emerald-600 font-bold">
-                        TOP EVENT PROBABILITY
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="lg:col-span-2 rounded-xl border border-jorpro-line bg-white p-4">
+                        <span class="text-xs font-bold text-jorpro-ink block mb-2">Risk Index by Basic Event</span>
+                        <div class="relative h-64 md:h-72"><canvas id="dashboardBarChart"></canvas></div>
                     </div>
-                    <div id="ftaPercentage"
-                         class="text-2xl font-black text-emerald-600 mt-2">
-                        -
-                    </div>
-                </div>
-
-                <div class="rounded-xl bg-jorpro-blue/5 border border-jorpro-blue/20 p-4">
-                    <div class="text-[10px] tracking-widest text-jorpro-blue font-bold">
-                        BASIC EVENTS
-                    </div>
-                    <div id="basicEventCount"
-                         class="text-lg font-black text-jorpro-ink mt-2">
-                        0
-                    </div>
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- RISK RESULT -->
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8">
-
-            <div class="flex items-start justify-between gap-4 mb-6">
-                <div>
-                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase">
-                        FAA RISK ASSESSMENT
-                    </span>
-
-                    <h3 class="text-lg font-bold text-jorpro-ink mt-1">
-                        Risk Assessment Result
-                    </h3>
-                </div>
-
-                <span id="riskCompletionBadge"
-                      class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-xs font-bold text-jorpro-slate">
-                    0 / 0 EVENTS
-                </span>
-            </div>
-
-            <div class="rounded-xl border border-jorpro-blue/20 bg-jorpro-blue/5 p-4 mb-5 flex items-start gap-3">
-                <div class="w-6 h-6 rounded-full bg-jorpro-blue/10 text-jorpro-blue flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
-                    i
-                </div>
-                <div>
-                    <strong class="text-xs font-bold text-jorpro-blue uppercase tracking-wider block">
-                        Expert Initial Risk (reference only)
-                    </strong>
-                    <p class="text-xs text-jorpro-slate mt-1">
-                        This is the Expert's raw Likelihood × Severity lookup, shown here for context. The Safety Officer's own Weighted Risk Scoring is calculated separately below.
-                        <span class="block text-jorpro-mute mt-1">นี่คือผล Likelihood × Severity ดิบจาก Expert แสดงไว้เพื่ออ้างอิงเท่านั้น ส่วนคะแนนความเสี่ยงอย่างเป็นทางการของ Safety Officer คำนวณแยกไว้ด้านล่าง</span>
-                    </p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[11px] text-jorpro-mute block">
-                        Highest Risk
-                    </span>
-                    <strong id="highestRiskLevel"
-                            class="text-lg font-black text-jorpro-slate block mt-1">
-                        -
-                    </strong>
-                </div>
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[11px] text-jorpro-mute block">
-                        Events Needing SO Review
-                    </span>
-                    <strong id="mitigationEventCount"
-                            class="text-lg font-black text-jorpro-slate block mt-1">
-                        0
-                    </strong>
-                </div>
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[11px] text-jorpro-mute block">
-                        Overall Initial Risk
-                    </span>
-                    <strong id="overallAcceptability"
-                            class="text-lg font-black text-jorpro-slate block mt-1">
-                        -
-                    </strong>
-                </div>
-
-            </div>
-
-            <div class="overflow-x-auto rounded-xl border border-jorpro-line">
-                <table class="min-w-full text-left">
-                    <thead class="bg-jorpro-canvas">
-                        <tr class="text-[11px] uppercase tracking-wider text-jorpro-mute">
-                            <th class="px-4 py-3">Event</th>
-                            <th class="px-4 py-3">Likelihood</th>
-                            <th class="px-4 py-3">Severity</th>
-                            <th class="px-4 py-3">Risk Index</th>
-                            <th class="px-4 py-3">Initial Risk Level</th>
-                            <th class="px-4 py-3">SO Weighted Scoring</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="riskAssessmentTableBody"
-                           class="divide-y divide-jorpro-line bg-jorpro-canvas">
-                    </tbody>
-                </table>
-            </div>
-
-        </section>
-
-
-        <!-- SAFETY OFFICER WEIGHTED RISK SCORING -->
-        <section class="bg-white border border-jorpro-blue/25 rounded-2xl p-6 md:p-8 shadow-xl">
-
-            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
-                <div>
-                    <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">
-                        SAFETY OFFICER SCORING
-                    </span>
-
-                    <h3 class="text-lg font-bold text-jorpro-ink mt-1">
-                        Weighted Risk Scoring
-                    </h3>
-
-                    <p class="text-xs text-jorpro-mute mt-1">
-                        ผลการให้คะแนนความเสี่ยงอย่างเป็นทางการของ Safety Officer ด้วยวิธี Weighted Euclidean Distance
-                    </p>
-                </div>
-
-                <div class="rounded-xl bg-jorpro-canvas border border-jorpro-line px-4 py-3 font-mono text-xs text-jorpro-slate whitespace-nowrap self-start">
-                    RI&nbsp;=&nbsp;√(0.70·S² + 0.30·L²)
-                </div>
-            </div>
-
-            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-5 text-xs text-amber-700 leading-relaxed">
-                <strong class="font-bold">หมายเหตุ:</strong>
-                ช่วงคะแนนและระดับความเสี่ยงด้านล่างเป็นเกณฑ์ที่เสนอสำหรับระบบ FTA Tools ของ JorproA (จากช่วงค่า Weighted Euclidean Index) ไม่ใช่มาตรฐาน ICAO โดยตรง และควรได้รับการทบทวน/ยืนยันโดยผู้เชี่ยวชาญด้านความปลอดภัยก่อนนำไปใช้จริง
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[11px] text-jorpro-mute block">
-                        Highest SO Risk Level
-                    </span>
-                    <strong id="soHighestRiskLevel"
-                            class="text-lg font-black text-jorpro-slate block mt-1">
-                        -
-                    </strong>
-                </div>
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[11px] text-jorpro-mute block">
-                        High Risk or Above
-                    </span>
-                    <strong id="soHighPriorityCount"
-                            class="text-lg font-black text-jorpro-slate block mt-1">
-                        0
-                    </strong>
-                </div>
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[11px] text-jorpro-mute block">
-                        Events Scored
-                    </span>
-                    <strong id="soScoredCount"
-                            class="text-lg font-black text-jorpro-slate block mt-1">
-                        0 / 0
-                    </strong>
-                </div>
-
-            </div>
-
-            <div class="overflow-x-auto rounded-xl border border-jorpro-line">
-                <table class="min-w-[900px] w-full text-left">
-                    <thead class="bg-jorpro-canvas">
-                        <tr class="text-[11px] uppercase tracking-wider text-jorpro-mute">
-                            <th class="px-4 py-3">Priority</th>
-                            <th class="px-4 py-3">Basic Event</th>
-                            <th class="px-4 py-3">L</th>
-                            <th class="px-4 py-3">S</th>
-                            <th class="px-4 py-3">Weights (S / L)</th>
-                            <th class="px-4 py-3">Risk Index (RI)</th>
-                            <th class="px-4 py-3">SO Risk Level</th>
-                            <th class="px-4 py-3">Recommended Action</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="soRiskScoringTableBody"
-                           class="divide-y divide-jorpro-line bg-jorpro-canvas">
-                    </tbody>
-                </table>
-            </div>
-
-        </section>
-
-
-        <!-- SAFETY CONTROLS -->
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8">
-
-            <div class="flex items-start justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                <div>
-                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase">
-                        SAFETY CONTROLS
-                    </span>
-
-                    <h3 class="text-lg font-bold text-jorpro-ink mt-1">
-                        Mitigation &amp; Risk Ownership
-                    </h3>
-
-                    <p class="text-xs text-jorpro-mute mt-1">
-                        ข้อมูลที่ Safety Officer สามารถตรวจสอบได้เท่านั้น
-                    </p>
-                </div>
-
-                <span class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-600">
-                    READ ONLY
-                </span>
-            </div>
-
-            <div id="safetyControlsByEvent"
-                 class="space-y-4">
-            </div>
-
-        </section>
-
-
-        <section class="flex justify-between gap-3 pt-2">
-            <button id="backBtn"
-                    type="button"
-                    class="px-6 py-3 rounded-xl bg-jorpro-canvas hover:bg-slate-100 border border-jorpro-line text-xs font-bold text-jorpro-slate">
-                ← BACK TO DASHBOARD
-            </button>
-
-            <div class="text-[10px] text-jorpro-mute flex items-center">
-                Weighted Risk Scoring (Priority, Risk Index and Risk Level) is included in the Dashboard and the Excel export.
-            </div>
-        </section>
-
-    </main>
-</div>
-
-
-<!-- =====================================================
-     RISK DASHBOARD MODAL
-     ===================================================== -->
-<div id="dashboardModal"
-     class="hidden fixed inset-0 z-[60] bg-jorpro-ink/60 backdrop-blur-sm p-4 md:p-8 overflow-y-auto">
-
-    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl border border-jorpro-line">
-
-        <div class="flex items-start justify-between gap-4 p-5 md:p-6 border-b border-jorpro-line">
-            <div>
-                <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">
-                    RISK DASHBOARD
-                </span>
-                <h2 id="dashboardAnalysisTitle"
-                    class="text-xl md:text-2xl font-extrabold text-jorpro-ink mt-1">
-                    -
-                </h2>
-                <p class="text-xs text-jorpro-mute mt-1">
-                    Safety Officer Weighted Risk Scoring — สรุปเชิงภาพรวมแบบ Dashboard
-                </p>
-            </div>
-
-            <button id="dashboardCloseBtn"
-                    type="button"
-                    aria-label="Close dashboard"
-                    class="w-9 h-9 shrink-0 rounded-xl bg-jorpro-canvas hover:bg-slate-100 border border-jorpro-line text-jorpro-slate font-bold">
-                ✕
-            </button>
-        </div>
-
-
-        <div class="p-5 md:p-6 space-y-5">
-
-            <!-- KPI ROW -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[10px] text-jorpro-mute block">Events Scored</span>
-                    <strong id="kpiScoredCount" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
-                </div>
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[10px] text-jorpro-mute block">Highest SO Risk</span>
-                    <strong id="kpiHighestRisk" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
-                </div>
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[10px] text-jorpro-mute block">High Risk or Above</span>
-                    <strong id="kpiHighCount" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
-                </div>
-
-                <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4">
-                    <span class="text-[10px] text-jorpro-mute block">Average Risk Index</span>
-                    <strong id="kpiAvgRi" class="text-2xl font-black text-jorpro-ink block mt-1">-</strong>
-                </div>
-
-            </div>
-
-
-            <!-- CHARTS ROW 1 -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-                <div class="lg:col-span-2 rounded-xl border border-jorpro-line bg-white p-4">
-                    <span class="text-xs font-bold text-jorpro-ink block mb-2">
-                        Risk Index by Basic Event
-                    </span>
-                    <div class="relative h-64 md:h-72">
-                        <canvas id="dashboardBarChart"></canvas>
+                    <div class="rounded-xl border border-jorpro-line bg-white p-4">
+                        <span class="text-xs font-bold text-jorpro-ink block mb-2">SO Risk Level Distribution</span>
+                        <div class="relative h-64 md:h-72"><canvas id="dashboardDoughnutChart"></canvas></div>
                     </div>
                 </div>
 
                 <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                    <span class="text-xs font-bold text-jorpro-ink block mb-2">
-                        SO Risk Level Distribution
-                    </span>
-                    <div class="relative h-64 md:h-72">
-                        <canvas id="dashboardDoughnutChart"></canvas>
-                    </div>
+                    <span class="text-xs font-bold text-jorpro-ink block mb-2">Likelihood × Severity Map <span class="font-normal text-jorpro-mute">(bubble size = Risk Index)</span></span>
+                    <div class="relative h-72 md:h-80"><canvas id="dashboardScatterChart"></canvas></div>
                 </div>
 
-            </div>
-
-
-            <!-- CHARTS ROW 2 -->
-            <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                <span class="text-xs font-bold text-jorpro-ink block mb-2">
-                    Likelihood × Severity Map <span class="font-normal text-jorpro-mute">(bubble size = Risk Index)</span>
-                </span>
-                <div class="relative h-72 md:h-80">
-                    <canvas id="dashboardScatterChart"></canvas>
+                <div id="dashboardEmptyState" class="hidden rounded-xl border border-amber-200 bg-amber-50 p-5 text-xs text-amber-700">
+                    ยังไม่มี Basic Event ที่ Expert ให้คะแนน Likelihood/Severity ครบ จึงยังไม่มีข้อมูลสำหรับ Dashboard
                 </div>
             </div>
-
-
-            <div id="dashboardEmptyState" class="hidden rounded-xl border border-amber-200 bg-amber-50 p-5 text-xs text-amber-700">
-                ยังไม่มี Basic Event ที่ Expert ให้คะแนน Likelihood/Severity ครบ จึงยังไม่มีข้อมูลสำหรับ Dashboard
-            </div>
-
         </div>
-
     </div>
 
-</div>
 
+    <script src="../icons.js"></script>
+    <script src="../notify.js"></script>
+    <script src="../shell.js"></script>
+    <script>
+        Shell.mount({ role: "safety-officer", active: "result", title: "Analysis Result" });
+        document.getElementById("icoChart").innerHTML = Icon("chart", "", 14);
+        document.getElementById("icoDownload").innerHTML = Icon("download", "", 14);
+    </script>
 
-<script src="analysis-result-view.js"></script>
+    <script src="analysis-result-view.js"></script>
 </body>
 </html>
