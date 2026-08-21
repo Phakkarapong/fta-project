@@ -1,18 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FTA Analysis - Expert | JorproA</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
-
-    <!-- Google Fonts: Noto Sans Thai (display, UI, Thai), IBM Plex Mono (data tags) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -20,365 +17,128 @@
                 extend: {
                     colors: {
                         jorpro: {
-                            ink: '#101828',
-                            slate: '#475467',
-                            mute: '#8A94A6',
-                            canvas: '#F3F5F9',
-                            surface: '#FFFFFF',
-                            line: '#E2E7EF',
-                            blue: '#123E7C',
-                            blueMid: '#2A5FAE',
-                            blueBright: '#2E6FE0',
-                            red: '#C21F2E',
-                            redDim: '#F6E4E5',
-                            redLight: '#FF97A0',
+                            ink: '#0F172A', slate: '#475569', mute: '#94A3B8',
+                            canvas: '#F8FAFC', surface: '#FFFFFF', line: '#E2E8F0',
+                            blue: '#4F46E5', blueMid: '#4338CA', blueBright: '#6366F1',
+                            red: '#E11D48', redDim: '#FFF1F2', redLight: '#FDA4AF',
                         }
                     },
                     fontFamily: {
-                        display: ['"Noto Sans Thai"', 'sans-serif'],
-                        sans: ['"Noto Sans Thai"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', '"Noto Sans Thai"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', '"Noto Sans Thai"', 'sans-serif'],
                         mono: ['"IBM Plex Mono"', 'monospace'],
                     }
                 }
             }
         }
     </script>
-    <style>
-        .strip-topbar { background: #C21F2E; }
-        .bg-instrument-pattern {
-            background-image: radial-gradient(rgba(16, 24, 40, 0.05) 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-        button:focus-visible, select:focus-visible, a:focus-visible {
-            outline: 2px solid #2E6FE0;
-            outline-offset: 2px;
-        }
-        body { padding-top: 3px; }
 
-        /* Same sky as the landing page, fixed to the viewport so it
-           reads correctly behind scrolling content. */
-        .jorpro-page {
-            position: relative;
-            background:
-                radial-gradient(circle at top right, rgba(134, 183, 238, 0.16), transparent 34%),
-                radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.10), transparent 30%),
-                linear-gradient(180deg, #081D3F 0%, #123E7C 28%, #1F5DAD 52%, #3A7FD9 74%, #86B7EE 100%);
-            background-attachment: fixed;
-        }
-        .jorpro-clouds { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-        .jorpro-cloud {
-            position: absolute;
-            border-radius: 9999px;
-            background: radial-gradient(ellipse at center, rgba(255,255,255,0.95), rgba(255,255,255,0) 70%);
-            filter: blur(12px);
-        }
-        .jorpro-cloud-a { width: 280px; height: 95px; top: 6%; left: 4%; opacity: 0.55; }
-        .jorpro-cloud-b { width: 210px; height: 72px; top: 15%; right: 8%; opacity: 0.45; }
-        .jorpro-cloud-c { width: 330px; height: 112px; top: 42%; left: -5%; opacity: 0.4; }
-        .jorpro-cloud-d { width: 230px; height: 82px; top: 58%; right: -3%; opacity: 0.35; }
-        .jorpro-cloud-e { width: 185px; height: 66px; top: 78%; left: 42%; opacity: 0.32; }
-        @media (prefers-reduced-motion: reduce) { .jorpro-cloud { animation: none !important; } }
-    </style>
+    <link rel="stylesheet" href="../theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="jorpro-page text-jorpro-ink min-h-screen font-sans">
+<body>
 
-    <div class="strip-topbar w-full h-[3px] fixed top-0 left-0 right-0 z-50"></div>
-    <div class="jorpro-clouds" aria-hidden="true">
-        <div class="jorpro-cloud jorpro-cloud-a"></div>
-        <div class="jorpro-cloud jorpro-cloud-b"></div>
-        <div class="jorpro-cloud jorpro-cloud-c hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-d hidden sm:block"></div>
-        <div class="jorpro-cloud jorpro-cloud-e hidden lg:block"></div>
+    <div class="app-shell">
+        <div class="main-area">
+
+            <header class="topbar" id="appTopbar"></header>
+
+            <main class="main-content" id="pageContent">
+
+    <div class="ui-card ui-card-pad" style="margin-bottom:18px;">
+        <div class="ui-stepper">
+            <div class="ui-step active"><span class="ui-step-dot">1</span><span class="ui-step-label">FTA Analysis</span></div>
+            <div class="ui-step-line"></div>
+            <div class="ui-step"><span class="ui-step-dot">2</span><span class="ui-step-label">Risk Assessment</span></div>
+        </div>
     </div>
-<div class="max-w-6xl mx-auto px-4 py-6 md:py-8 relative z-10">
 
-    <header class="flex flex-col sm:flex-row items-start sm:items-center
-                   justify-between gap-4 p-5 rounded-2xl
-                   bg-white border border-jorpro-line">
+    <div style="display:flex;flex-direction:column;gap:18px;">
 
-        <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr
-                        from-jorpro-blue to-jorpro-blueBright
-                        flex items-center justify-center text-xl">
-                ✈
-            </div>
-
-            <div>
-                <h1 class="text-xl font-bold tracking-wider">
-                    Jorpro<span class="text-jorpro-blue">A</span>
-                </h1>
-
-                <p class="text-xs text-jorpro-mute">
-                    Fault Tree Analysis Workspace
+        <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
+            <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">EXPERT STEP · FTA ANALYSIS</span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink mt-1">Fault Tree Analysis</h2>
+            <p class="text-sm text-jorpro-mute mt-2">Analyze the Fault Tree submitted by the Safety Officer.</p>
+            <div class="ui-note" style="margin-top:16px;">
+                <span id="icoInfo"></span>
+                <p style="margin:0;">
+                    Safety Officer data is displayed as the source FTA structure. Review it, then continue to
+                    Risk Assessment to score Likelihood and Severity for each Basic Event. Probability calculation
+                    is now handled on the Safety Officer's Analysis Result page.
                 </p>
             </div>
-        </div>
-
-        <div class="px-3 py-1.5 rounded-full
-                    bg-jorpro-blue/10 border border-jorpro-blue/25
-                    text-[10px] font-bold text-jorpro-blueBright">
-            EXPERT
-        </div>
-    </header>
-
-
-    <main class="space-y-6 mt-6">
-
-
-        <!-- EXPERT TWO-STEP FLOW -->
-        <section class="flex items-center justify-between bg-white border border-jorpro-line rounded-2xl p-4 md:p-5 overflow-x-auto">
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="w-8 h-8 rounded-xl bg-jorpro-blue text-white font-bold flex items-center justify-center text-sm shadow-lg shadow-jorpro-blue/20">
-                    1
-                </span>
-                <div>
-                    <strong class="text-xs font-bold text-jorpro-blue block">Analysis</strong>
-                    <small class="text-[10px] text-jorpro-mute">FTA Analysis</small>
-                </div>
-            </div>
-
-            <div class="flex-1 min-w-[40px] h-0.5 bg-jorpro-blue/60 mx-4"></div>
-
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="w-8 h-8 rounded-xl bg-jorpro-canvas text-jorpro-mute font-bold flex items-center justify-center text-sm border border-jorpro-line">
-                    2
-                </span>
-                <div>
-                    <strong class="text-xs font-bold text-jorpro-mute block">Risk</strong>
-                    <small class="text-[10px] text-jorpro-mute">FAA Risk Assessment</small>
-                </div>
-            </div>
         </section>
-
-
-
-
-        <section class="bg-white border border-jorpro-line
-                        rounded-2xl p-6 md:p-8">
-
-            <span class="text-[10px] font-bold tracking-widest
-                         text-jorpro-blue uppercase">
-                EXPERT STEP · FTA ANALYSIS
-            </span>
-
-            <h2 class="text-2xl md:text-3xl font-extrabold
-                       text-jorpro-ink mt-1">
-                Fault Tree Analysis
-            </h2>
-
-            <p class="text-sm text-jorpro-mute mt-2">
-                Analyze the Fault Tree submitted by the Safety Officer.
-            </p>
-
-            <div class="mt-4 p-4 rounded-xl
-                        bg-jorpro-blue/5 border border-jorpro-blue/20">
-                <p class="text-xs text-jorpro-slate leading-relaxed">
-                    Safety Officer data is displayed as the source FTA structure.
-                    Review it, then continue to Risk Assessment to score
-                    Likelihood and Severity for each Basic Event.
-                    Probability calculation is now handled on the Safety
-                    Officer's Analysis Result page.
-                </p>
-            </div>
-
-        </section>
-
 
         <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <div class="bg-white border border-jorpro-line
-                        rounded-2xl p-5">
-
-                <span class="text-[10px] uppercase tracking-widest
-                             text-jorpro-mute font-bold">
-                    ANALYSIS TITLE
-                </span>
-
-                <div id="analysisTitle"
-                     class="text-base font-bold text-jorpro-ink mt-2 break-words">
-                    -
-                </div>
-
+            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">ANALYSIS TITLE</span>
+                <div id="analysisTitle" class="text-base font-bold text-jorpro-ink mt-2 break-words">-</div>
             </div>
-
-
-            <div class="bg-white border border-jorpro-line
-                        rounded-2xl p-5">
-
-                <span class="text-[10px] uppercase tracking-widest
-                             text-jorpro-mute font-bold">
-                    TOP EVENT
-                </span>
-
-                <div id="topEvent"
-                     class="text-base font-bold text-jorpro-blueBright mt-2 break-words">
-                    -
-                </div>
-
+            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">TOP EVENT</span>
+                <div id="topEvent" class="text-base font-bold text-jorpro-blueBright mt-2 break-words">-</div>
             </div>
-
-
-            <div class="bg-white border border-jorpro-line
-                        rounded-2xl p-5">
-
-                <span class="text-[10px] uppercase tracking-widest
-                             text-jorpro-mute font-bold">
-                    DEPARTMENT / AREA
-                </span>
-
-                <div id="department"
-                     class="text-sm text-jorpro-slate mt-2">
-                    -
-                </div>
-
+            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">DEPARTMENT / AREA</span>
+                <div id="department" class="text-sm text-jorpro-slate mt-2">-</div>
             </div>
-
-
-            <div class="bg-white border border-jorpro-line
-                        rounded-2xl p-5">
-
-                <span class="text-[10px] uppercase tracking-widest
-                             text-jorpro-mute font-bold">
-                    SOURCE
-                </span>
-
-                <div class="text-sm text-jorpro-slate mt-2">
-                    Safety Officer
-                </div>
-
+            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">SOURCE</span>
+                <div class="text-sm text-jorpro-slate mt-2">Safety Officer</div>
             </div>
-
         </section>
 
+        <section class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                    <div class="text-[10px] uppercase tracking-widest text-jorpro-blue font-bold">FAULT TREE</div>
+                    <div class="mt-1 text-lg font-bold text-jorpro-ink">TOP EVENT: <span id="treeTopEvent">-</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="px-4 py-2 rounded-xl bg-jorpro-blue/5 border border-jorpro-line text-xs font-bold text-jorpro-blue">
+                        GATE: <span id="gateDisplay">OR</span>
+                    </div>
+                    <div id="analysisStructureStatus" class="px-4 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-xs font-bold text-jorpro-slate">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+            <div id="treeGate" class="hidden">OR</div>
+        </section>
 
-        <section class="bg-white border border-jorpro-blue/20 rounded-2xl p-6 md:p-8">
-            <div class="flex items-center justify-between gap-3">
+        <section class="bg-white border border-jorpro-blue/20 rounded-2xl p-6 md:p-8 shadow-sm">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                     <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">SAFETY OFFICER SOURCE DATA</span>
-                    <h3 class="text-lg font-bold text-jorpro-ink mt-1">Safety Controls for Basic Events</h3>
-                    <p class="text-xs text-jorpro-mute mt-1">Existing Risk Control, Safety Mitigation and Risk Owner received from Safety Officer.</p>
+                    <h3 class="text-lg font-bold text-jorpro-ink mt-1">Basic Events</h3>
+                    <p class="text-xs text-jorpro-mute mt-1">ข้อมูล Basic Event, Existing Risk Control, Safety Mitigation และ Risk Owner ที่ได้รับจาก Safety Officer</p>
                 </div>
                 <span id="safetyControlEventCount" class="text-xs font-bold text-jorpro-blue">0 EVENTS</span>
             </div>
-            <div id="safetyOfficerEventControls" class="grid grid-cols-1 gap-4 mt-5"></div>
+            <div id="safetyOfficerEventControls" style="margin-top:18px;"></div>
         </section>
 
-
-        <section class="bg-white text-slate-800 rounded-2xl
-                        p-6 md:p-8 shadow-xl">
-
-            <div class="flex flex-col sm:flex-row
-                        sm:items-center sm:justify-between gap-4">
-
-                <div>
-                    <span class="text-[10px] uppercase
-                                 tracking-widest text-jorpro-blue font-bold">
-                        FAULT TREE
-                    </span>
-
-                    <h3 class="text-xl font-bold text-jorpro-ink mt-1">
-                        Analysis Structure
-                    </h3>
-                </div>
-
-                <div class="px-4 py-2 rounded-xl
-                            bg-jorpro-blue/5 border border-jorpro-line
-                            text-xs font-bold text-jorpro-blue">
-                    GATE:
-                    <span id="gateDisplay">OR</span>
-                </div>
-
-                <div id="analysisStructureStatus"
-                     class="px-4 py-2 rounded-xl
-                            bg-slate-100 border border-slate-200
-                            text-xs font-bold text-jorpro-slate">
-                    Loading Analysis Structure...
-                </div>
-
-            </div>
-
-
-            <div class="mt-6 p-5 rounded-2xl
-                        bg-jorpro-blue/5 border border-jorpro-line
-                        text-center">
-
-                <div class="text-[10px] uppercase
-                            tracking-widest text-jorpro-blue font-bold">
-                    TOP EVENT
-                </div>
-
-                <div id="treeTopEvent"
-                     class="text-lg font-extrabold
-                            text-jorpro-ink mt-2">
-                    -
-                </div>
-
-            </div>
-
-
-            <div class="flex justify-center py-4">
-                <div class="w-0.5 h-8 bg-jorpro-blue/30"></div>
-            </div>
-
-
-            <div class="flex justify-center">
-
-                <div id="treeGate"
-                     class="w-24 h-14 rounded-xl
-                            border-2 border-jorpro-blue
-                            bg-white flex items-center
-                            justify-center
-                            font-extrabold text-jorpro-blue">
-                    OR
-                </div>
-
-            </div>
-
-
-            <div class="flex justify-center py-4">
-                <div class="w-0.5 h-8 bg-jorpro-blue/30"></div>
-            </div>
-
-
-            <div id="treeEvents"
-                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3
-                        gap-4">
-            </div>
-
+        <section class="ui-sticky-actions">
+            <button id="backBtn" type="button" class="ui-btn ui-btn-secondary">← BACK</button>
+            <button id="continueRiskBtn" type="button" class="ui-btn ui-btn-primary">CONTINUE TO RISK ASSESSMENT →</button>
         </section>
+        <div class="ui-sticky-spacer"></div>
 
+    </div>
 
-        <section class="flex flex-col sm:flex-row
-                        items-center justify-between gap-3">
+            </main>
+        </div>
+    </div>
 
-            <button id="backBtn"
-                    type="button"
-                    class="w-full sm:w-auto
-                           px-5 py-3 rounded-xl
-                           bg-jorpro-canvas border border-jorpro-line
-                           text-jorpro-slate text-xs font-bold">
-                ← BACK TO QUEUE
-            </button>
+    <script src="../icons.js"></script>
+    <script src="../notify.js"></script>
+    <script src="../shell.js"></script>
+    <script>
+        Shell.mount({ role: "expert", active: "queue", title: "FTA Analysis" });
+        document.getElementById("icoInfo").innerHTML = Icon("check-circle", "", 16);
+    </script>
 
-
-            <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
-<button id="continueRiskBtn"
-        type="button"
-        class="w-full sm:w-auto px-6 py-3 rounded-xl
-               bg-gradient-to-r from-jorpro-blue to-jorpro-blueBright
-               hover:from-jorpro-blueBright hover:to-jorpro-blue
-               text-white text-xs font-bold">
-    CONTINUE TO RISK ASSESSMENT →
-</button>
-</div>
-
-        </section>
-
-    </main>
-
-</div>
-
-<script src="fta-analysis.js"></script>
+    <script src="fta-analysis.js"></script>
 </body>
 </html>

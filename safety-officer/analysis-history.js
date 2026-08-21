@@ -207,298 +207,86 @@ function saveCanonical(record) {
     return canonical;
 }
 
-function renderHistory() {
-    const list = document.getElementById("historyList");
-    const count = document.getElementById("recordCount");
-    const records = loadRecords();
+const STATUS_LABELS = {
+    DRAFT: "แบบร่าง",
+    PENDING_EXPERT: "รอผู้เชี่ยวชาญ",
+    UNDER_ANALYSIS: "กำลังวิเคราะห์",
+    COMPLETED: "เสร็จสมบูรณ์"
+};
 
-    if (count) {
-        count.textContent =
-            `${records.length} RECORD${records.length === 1 ? "" : "S"}`;
-    }
+const STATUS_BADGE_CLASS = {
+    DRAFT: "status-badge-slate",
+    PENDING_EXPERT: "status-badge-amber",
+    UNDER_ANALYSIS: "status-badge-blue",
+    COMPLETED: "status-badge-green"
+};
 
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    if (!records.length) {
-        list.innerHTML = `
-            <section class="rounded-2xl bg-white
-                            border border-jorpro-line p-10 text-center">
-                <div class="text-4xl mb-4">📋</div>
-                <h3 class="text-lg font-bold text-jorpro-ink">
-                    No Analysis History
-                </h3>
-                <p class="text-sm text-jorpro-mute mt-2">
-                    ยังไม่มีประวัติการวิเคราะห์
-                </p>
-            </section>
-        `;
-        return;
-    }
-
-    records.forEach((rawRecord, index) => {
-        const record = normalizeRecord(rawRecord);
-        const events = record.ftaData.basicEvents;
-
-        const card = document.createElement("section");
-
-        card.className =
-            "rounded-2xl bg-white border border-jorpro-line p-5 md:p-6";
-
-        card.innerHTML = `
-            <div class="flex flex-col lg:flex-row
-                        lg:items-start lg:justify-between gap-5">
-
-                <div class="flex-1 min-w-0">
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-3 py-1.5 rounded-full
-                                     bg-jorpro-blue/10 border border-jorpro-blue/20
-                                     text-jorpro-blueBright text-[10px] font-bold">
-                            ${escapeHtml(
-                                record.status || "DRAFT"
-                            )}
-                        </span>
-
-                        <span class="text-[10px] text-jorpro-slate">
-                            #${records.length - index}
-                        </span>
-                    </div>
-
-                    <h3 class="text-lg md:text-xl font-bold
-                               text-jorpro-ink mt-3 break-words">
-                        ${escapeHtml(
-                            record.analysisTitle ||
-                            "Untitled Analysis"
-                        )}
-                    </h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-
-                        <div class="rounded-xl bg-jorpro-canvas
-                                    border border-jorpro-line p-3">
-                            <div class="text-[10px] tracking-widest
-                                        text-jorpro-mute font-bold">
-                                TOP EVENT
-                            </div>
-                            <div class="text-sm text-jorpro-blueBright
-                                        font-semibold mt-1">
-                                ${escapeHtml(
-                                    record.topEvent || "-"
-                                )}
-                            </div>
-                        </div>
-
-                        <div class="rounded-xl bg-jorpro-canvas
-                                    border border-jorpro-line p-3">
-                            <div class="text-[10px] tracking-widest
-                                        text-jorpro-mute font-bold">
-                                DEPARTMENT / AREA
-                            </div>
-                            <div class="text-sm text-jorpro-slate mt-1">
-                                ${escapeHtml(
-                                    record.department || "-"
-                                )}
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="mt-4">
-                        <div class="text-[10px] tracking-widest
-                                    text-jorpro-mute font-bold mb-2">
-                            BASIC EVENTS (${events.length})
-                        </div>
-
-                        <div class="flex flex-wrap gap-2">
-                            ${
-                                events.length
-                                    ? events.map(event => `
-                                        <span class="px-3 py-1.5 rounded-lg
-                                                     bg-jorpro-canvas border
-                                                     border-jorpro-line
-                                                     text-xs text-jorpro-slate">
-                                            ${escapeHtml(event.name)}
-                                        </span>
-                                    `).join("")
-                                    : `
-                                        <span class="text-xs text-amber-600">
-                                            No Basic Events
-                                        </span>
-                                    `
-                            }
-                        </div>
-                    </div>
-
-
-                    <div class="mt-4 rounded-xl
-                                border border-jorpro-blue/20
-                                bg-jorpro-blue/5 p-4">
-
-                        <div class="text-[10px] tracking-widest
-                                    text-jorpro-blue font-bold mb-3">
-                            NEXT REVIEW
-                        </div>
-
-                        <div class="space-y-2">
-
-                            ${
-                                Array.isArray(
-                                    record.riskAssessments
-                                ) &&
-                                record.riskAssessments.length
-                                    ? record.riskAssessments.map(
-                                        function(item) {
-                                            return `
-                                                <div class="flex flex-col sm:flex-row
-                                                            sm:items-center sm:justify-between
-                                                            gap-2 rounded-lg
-                                                            border border-jorpro-line
-                                                            bg-jorpro-canvas px-3 py-2">
-
-                                                    <span class="text-xs font-semibold text-jorpro-ink break-words">
-                                                        ${escapeHtml(
-                                                            item?.eventName ||
-                                                            item?.eventId ||
-                                                            "-"
-                                                        )}
-                                                    </span>
-
-                                                    <span class="text-xs font-bold text-jorpro-blueBright whitespace-nowrap">
-                                                        Next Review: ${escapeHtml(
-                                                            item?.nextReview ||
-                                                            "-"
-                                                        )}
-                                                    </span>
-
-                                                </div>
-                                            `;
-                                        }
-                                    ).join("")
-                                    : `
-                                        <div class="text-xs text-jorpro-mute">
-                                            No Next Review data
-                                        </div>
-                                    `
-                            }
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="flex lg:flex-col gap-2 shrink-0">
-
-                    <button
-                        type="button"
-                        class="view-record px-4 py-2.5 rounded-xl
-                               bg-jorpro-canvas hover:bg-slate-100
-                               border border-jorpro-line
-                               text-xs font-bold text-jorpro-slate"
-                        data-id="${escapeHtml(record.id)}">
-                        VIEW
-                    </button>
-
-                    <button
-                        type="button"
-                        class="delete-record px-4 py-2.5 rounded-xl
-                               bg-jorpro-redDim hover:bg-red-500/20
-                               border border-jorpro-red/25 hover:border-red-400/50
-                               text-xs font-bold text-jorpro-red"
-                        data-id="${escapeHtml(record.id)}">
-                        DELETE
-                    </button>
-
-                </div>
-
-            </div>
-        `;
-
-        list.appendChild(card);
-    });
+function statusBadgeHtml(status) {
+    const key = status || "DRAFT";
+    const cls = STATUS_BADGE_CLASS[key] || "status-badge-slate";
+    const label = STATUS_LABELS[key] || key;
+    return `<span class="status-badge ${cls}">${escapeHtml(label)}</span>`;
 }
 
-document.addEventListener("click", function (event) {
-    const viewBtn =
-        event.target.closest(".view-record");
+function formatDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return escapeHtml(String(value));
+    return date.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" });
+}
 
-    if (!viewBtn) return;
-
-    const id = viewBtn.dataset.id;
-
+function viewRecord(record) {
     const records = loadRecords();
 
     const rawRecord =
         records.find(
-            record =>
+            raw =>
                 String(
-                    record?.id ??
-                    record?.analysisData?.id
-                ) === String(id)
+                    raw?.id ??
+                    raw?.analysisData?.id
+                ) === String(record.id)
         );
 
     if (!rawRecord) {
-        alert("Analysis record not found.");
+        Notify.error("ไม่พบข้อมูลการวิเคราะห์นี้ในระบบ", "Analysis record not found.");
         return;
     }
 
-    const canonical =
-        saveCanonical(rawRecord);
+    const canonical = saveCanonical(rawRecord);
 
     // Persist the canonical record back into history too.
     const normalizedRecords =
-        records.map(record => {
-            const normalized =
-                normalizeRecord(record);
-
-            return String(normalized.id) ===
-                String(canonical.id)
+        records.map(raw => {
+            const normalized = normalizeRecord(raw);
+            return String(normalized.id) === String(canonical.id)
                 ? canonical
                 : normalized;
         });
 
-    localStorage.setItem(
-        RECORDS_KEY,
-        JSON.stringify(normalizedRecords)
-    );
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(normalizedRecords));
 
-    window.location.href =
-        "fta-review.html";
-});
+    window.location.href = "fta-review.html";
+}
 
-document.addEventListener("click", function (event) {
-    const deleteBtn =
-        event.target.closest(".delete-record");
-
-    if (!deleteBtn) return;
-
-    const id = String(deleteBtn.dataset.id || "");
-
+async function deleteRecord(record) {
+    const id = String(record.id || "");
     if (!id) return;
 
-    const confirmed = window.confirm(
-        "Delete this Analysis record?\n\nThis will remove the saved Analysis History entry from this browser."
-    );
+    const confirmed = await Notify.confirmDelete({
+        title: "ลบประวัติการวิเคราะห์นี้?",
+        text: "การลบนี้จะนำรายการออกจากประวัติในเบราว์เซอร์นี้อย่างถาวร"
+    });
 
     if (!confirmed) return;
 
     const records = loadRecords();
 
-    const filtered = records.filter(record => {
-        const recordId = String(
-            record?.id ??
-            record?.analysisData?.id ??
-            ""
-        );
+    const filtered = records.filter(raw => {
+        const recordId = String(raw?.id ?? raw?.analysisData?.id ?? "");
         return recordId !== id;
     });
 
-    localStorage.setItem(
-        RECORDS_KEY,
-        JSON.stringify(filtered)
-    );
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(filtered));
 
     // Clear the canonical "current analysis" too, but only when it
     // is the same record that was just deleted.
@@ -517,8 +305,71 @@ document.addEventListener("click", function (event) {
         }
     });
 
+    Notify.toast("ลบรายการเรียบร้อยแล้ว");
     renderHistory();
-});
+}
+
+let historyTable = null;
+
+function renderHistory() {
+    const container = document.getElementById("historyList");
+    const count = document.getElementById("recordCount");
+    const rawRecords = loadRecords();
+    const records = rawRecords.map(normalizeRecord);
+
+    if (count) {
+        count.textContent =
+            `${records.length} RECORD${records.length === 1 ? "" : "S"}`;
+    }
+
+    if (!container) return;
+
+    const filterOptions = Array.from(
+        new Set(records.map(r => r.status || "DRAFT"))
+    ).map(value => ({ value, label: STATUS_LABELS[value] || value }));
+
+    const columns = [
+        {
+            key: "analysisTitle", label: "หัวข้อการวิเคราะห์",
+            cellHtml: r => `
+                <div style="font-weight:800;color:var(--ink);">${escapeHtml(r.analysisTitle || "Untitled Analysis")}</div>
+                <div style="color:var(--muted);font-size:11px;margin-top:2px;">${r.ftaData.basicEvents.length} Basic Event(s)</div>
+            `
+        },
+        { key: "topEvent", label: "Top Event", cellHtml: r => escapeHtml(r.topEvent || "-") },
+        { key: "department", label: "แผนก/พื้นที่", cellHtml: r => escapeHtml(r.department || "-") },
+        { key: "status", label: "สถานะ", cellHtml: r => statusBadgeHtml(r.status) },
+        { key: "date", label: "วันที่", cellHtml: r => formatDate(r.submittedAt || r.createdAt) }
+    ];
+
+    const config = {
+        columns,
+        rows: records,
+        searchKeys: ["analysisTitle", "topEvent", "department", "officerName"],
+        searchPlaceholder: "ค้นหาหัวข้อ, Top Event หรือแผนก...",
+        filterKey: "status",
+        filterOptions,
+        pageSize: 8,
+        emptyMessage: "ยังไม่มีประวัติการวิเคราะห์ — No Analysis History",
+        rowMeta: r => ({
+            icon: Icon("file-text", "", 16),
+            title: r.analysisTitle || "Untitled Analysis",
+            subtitle: `${r.topEvent || "-"} · ${r.department || "-"}`,
+            badgeHtml: statusBadgeHtml(r.status)
+        }),
+        onRowClick: r => viewRecord(r),
+        rowActions: r => [
+            { label: "ดูรายละเอียด", icon: Icon("eye", "", 12), variant: "primary", onClick: viewRecord },
+            { label: "ลบ", icon: Icon("trash", "", 12), variant: "danger", onClick: deleteRecord }
+        ]
+    };
+
+    if (historyTable) {
+        historyTable.setRows(records);
+    } else {
+        historyTable = renderDataTable(container, config);
+    }
+}
 
 const backBtn =
     document.getElementById("backBtn");

@@ -1237,13 +1237,14 @@ function renderPage() {
 
     if (!analysis) {
 
-        alert(
+        Notify.error(
+            "ไม่พบข้อมูลผลการวิเคราะห์",
             "Analysis Result data was not found."
-        );
-
-        window.location.assign(
-            "expert.html"
-        );
+        ).then(function () {
+            window.location.assign(
+                "expert.html"
+            );
+        });
 
         return;
 

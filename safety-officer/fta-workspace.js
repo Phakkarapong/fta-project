@@ -47,12 +47,13 @@ function loadAnalysis() {
 
     if (!analysisData) {
 
-        alert(
-            "Analysis data was not found. Please start a new analysis."
-        );
-
-        window.location.href =
-            "new-analysis.html";
+        Notify.error(
+            "ไม่พบข้อมูลการวิเคราะห์ กรุณาเริ่มการวิเคราะห์ใหม่",
+            "Analysis data was not found."
+        ).then(function () {
+            window.location.href =
+                "new-analysis.html";
+        });
 
         return false;
     }
@@ -146,174 +147,130 @@ function renderPage() {
 }
 
 
+// Single data table (one row per Basic Event) replaces the old dual
+// rendering (a read-only "live tree" card grid duplicating an editable
+// card list below it). Each row's "แก้ไข" action reveals a detail row
+// directly below it containing the same edit fields as before — same
+// input classes/data-index attributes, so collectEventInputs() keeps
+// working unchanged; it just reads whichever inputs are in the DOM,
+// visible or not.
 function renderEvents() {
 
     const events =
         analysisData.ftaData.basicEvents;
 
-    const tree =
-        document.getElementById(
-            "basicEventsContainer"
-        );
-
-    const form =
+    const container =
         document.getElementById(
             "eventFormContainer"
         );
 
-    tree.innerHTML = "";
-    form.innerHTML = "";
+    if (!container) return;
 
     document.getElementById(
         "eventCount"
     ).textContent =
         `${events.length} EVENTS`;
 
-    events.forEach(
-        function(event, index) {
+    if (!events.length) {
+        container.innerHTML =
+            '<div class="dt-empty">ยังไม่มี Basic Event — กด "+ ADD BASIC EVENT" เพื่อเริ่มต้น</div>';
+        updateLiveStatus("LIVE EDIT — changes are saved automatically");
+        return;
+    }
 
-            // =============================================
-            // LIVE TREE CARD
-            // =============================================
+    const rowsHtml = events.map(function (event, index) {
 
-            const card =
-                document.createElement(
-                    "div"
-                );
+        const idLabel =
+            `E-${String(index + 1).padStart(2, "0")}`;
 
-            card.className =
-                "rounded-xl border border-jorpro-line bg-jorpro-canvas p-4 relative";
-
-            card.innerHTML = `
-                <button
-                    type="button"
-                    class="delete-tree-event absolute top-3 right-3
-                           w-7 h-7 rounded-lg
-                           bg-red-50 hover:bg-red-100
-                           border border-red-200
-                           text-red-600 text-xs font-bold"
-                    data-index="${index}"
-                    title="Delete event">
-                    ×
-                </button>
-
-                <div class="text-[10px] font-bold tracking-widest text-jorpro-blue pr-8">
-                    BASIC EVENT E-${String(index + 1).padStart(2, "0")}
-                </div>
-
-                <div
-                    class="live-event-name mt-2 font-bold text-jorpro-slate
-                           break-words pr-8"
-                    data-index="${index}">
-                    ${escapeHtml(
-                        event.name ||
-                        "Unnamed Event"
-                    )}
-                </div>
-
-                <p
-                    class="live-event-description mt-2 text-xs text-jorpro-mute
-                           leading-relaxed break-words"
-                    data-index="${index}">
-                    ${escapeHtml(
-                        event.description ||
-                        "No description"
-                    )}
-                </p>
-            `;
-
-            tree.appendChild(card);
-
-
-            // =============================================
-            // EDIT FORM
-            // =============================================
-
-            const wrapper =
-                document.createElement(
-                    "div"
-                );
-
-            wrapper.className =
-                "p-4 rounded-xl bg-jorpro-canvas border border-jorpro-line";
-
-            wrapper.innerHTML = `
-                <div class="flex items-center justify-between gap-3 mb-3">
-
-                    <div class="text-xs font-bold text-jorpro-blue">
-                        E-${String(index + 1).padStart(2, "0")}
+        return `
+            <tr class="dt-row" data-summary-index="${index}">
+                <td style="width:70px;"><span class="status-badge status-badge-blue">${idLabel}</span></td>
+                <td>
+                    <div class="live-event-name" style="font-weight:800;color:var(--ink);" data-index="${index}">
+                        ${escapeHtml(event.name || "Unnamed Event")}
                     </div>
-
-                    <button
-                        type="button"
-                        class="remove-event-btn px-3 py-1.5 rounded-lg
-                               bg-jorpro-redDim border border-red-500/20
-                               text-jorpro-red hover:bg-red-500/20
-                               text-[10px] font-bold"
-                        data-index="${index}">
-                        DELETE EVENT
-                    </button>
-
-                </div>
-
-                <label class="block text-xs font-semibold text-jorpro-slate mb-2">
-                    Event Name
-                </label>
-
-                <input
-                    type="text"
-                    class="event-name-input w-full bg-jorpro-canvas border border-jorpro-line
-                           rounded-xl px-3 py-2.5 text-sm text-jorpro-ink
-                           focus:outline-none focus:border-cyan-500"
-                    data-index="${index}"
-                    value="${escapeHtml(
-                        event.name || ""
-                    )}"
-                    placeholder="ชื่อสาเหตุ">
-
-                <label class="block text-xs font-semibold text-jorpro-slate mt-4 mb-2">
-                    Event Description
-                </label>
-
-                <textarea
-                    class="event-description-input w-full bg-jorpro-canvas border border-jorpro-line
-                           rounded-xl px-3 py-2.5 text-sm text-jorpro-ink
-                           focus:outline-none focus:border-cyan-500 resize-none"
-                    data-index="${index}"
-                    rows="3"
-                    placeholder="รายละเอียดของสาเหตุ">${escapeHtml(
-                        event.description || ""
-                    )}</textarea>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-jorpro-slate mb-2">
-                            Existing Risk Control (Identify)
-                        </label>
-                        <textarea class="event-risk-control-input w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-3 py-2.5 text-sm text-jorpro-ink focus:outline-none focus:border-cyan-500 resize-none" data-index="${index}" rows="4" placeholder="Existing risk control">${escapeHtml(event.existingRiskControl || event.riskControl || "")}</textarea>
+                </td>
+                <td>
+                    <div class="live-event-description" style="color:var(--muted);font-size:12px;" data-index="${index}">
+                        ${escapeHtml(event.description || "No description")}
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-jorpro-slate mb-2">
-                            Safety Mitigation (Identify)
-                        </label>
-                        <textarea class="event-safety-mitigation-input w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-3 py-2.5 text-sm text-jorpro-ink focus:outline-none focus:border-cyan-500 resize-none" data-index="${index}" rows="4" placeholder="Safety mitigation">${escapeHtml(event.safetyMitigation || event.safetyOfficerMitigation || "")}</textarea>
+                </td>
+                <td class="text-right">
+                    <div class="dt-action-group">
+                        <button type="button" class="dt-action-btn dt-action-btn-primary toggle-edit-row" data-index="${index}">
+                            <span class="dt-action-icon">${window.Icon ? window.Icon("edit", "", 12) : ""}</span><span>แก้ไข</span>
+                        </button>
+                        <button type="button" class="dt-action-btn dt-action-btn-danger remove-event-btn" data-index="${index}">
+                            <span class="dt-action-icon">${window.Icon ? window.Icon("trash", "", 12) : ""}</span><span>ลบ</span>
+                        </button>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-jorpro-slate mb-2">
-                            Risk Owner
-                        </label>
-                        <input type="text" class="event-risk-owner-input w-full bg-jorpro-canvas border border-jorpro-line rounded-xl px-3 py-2.5 text-sm text-jorpro-ink focus:outline-none focus:border-cyan-500" data-index="${index}" value="${escapeHtml(event.riskOwner || "")}" placeholder="Risk owner">
+                </td>
+            </tr>
+            <tr class="hidden" data-detail-index="${index}">
+                <td colspan="4" style="background:var(--canvas);">
+                    <div style="padding:16px 4px;">
+
+                        <div class="ui-field">
+                            <label class="ui-label">Event Name</label>
+                            <input type="text" class="event-name-input ui-input" data-index="${index}"
+                                   value="${escapeHtml(event.name || "")}" placeholder="ชื่อสาเหตุ">
+                        </div>
+
+                        <div class="ui-field">
+                            <label class="ui-label">Event Description</label>
+                            <textarea class="event-description-input ui-textarea" data-index="${index}" rows="2"
+                                      placeholder="รายละเอียดของสาเหตุ">${escapeHtml(event.description || "")}</textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="ui-field">
+                                <label class="ui-label">Existing Risk Control</label>
+                                <textarea class="event-risk-control-input ui-textarea" data-index="${index}" rows="3"
+                                          placeholder="Existing risk control">${escapeHtml(event.existingRiskControl || event.riskControl || "")}</textarea>
+                            </div>
+                            <div class="ui-field">
+                                <label class="ui-label">Safety Mitigation</label>
+                                <textarea class="event-safety-mitigation-input ui-textarea" data-index="${index}" rows="3"
+                                          placeholder="Safety mitigation">${escapeHtml(event.safetyMitigation || event.safetyOfficerMitigation || "")}</textarea>
+                            </div>
+                            <div class="ui-field" style="margin-bottom:0;">
+                                <label class="ui-label">Risk Owner</label>
+                                <input type="text" class="event-risk-owner-input ui-input" data-index="${index}"
+                                       value="${escapeHtml(event.riskOwner || "")}" placeholder="Risk owner">
+                            </div>
+                        </div>
+
                     </div>
-                </div>
-            `;
+                </td>
+            </tr>
+        `;
+    }).join("");
 
-            form.appendChild(wrapper);
-
-        }
-    );
+    container.innerHTML = `
+        <div class="data-table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr><th>ID</th><th>Name</th><th>Description</th><th class="text-right">Actions</th></tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+    `;
 
     updateLiveStatus("LIVE EDIT — changes are saved automatically");
 }
+
+
+// Toggle a row's detail (edit-fields) row open/closed.
+document.addEventListener("click", function (event) {
+    const btn = event.target.closest(".toggle-edit-row");
+    if (!btn) return;
+
+    const index = btn.dataset.index;
+    const detailRow = document.querySelector(`tr[data-detail-index="${index}"]`);
+    if (detailRow) detailRow.classList.toggle("hidden");
+});
 
 
 function updateLiveStatus(message, isSaved = false) {
@@ -630,7 +587,7 @@ document
 
 document.addEventListener(
     "click",
-    function(event) {
+    async function(event) {
 
         const button =
             event.target.closest(
@@ -653,11 +610,13 @@ document.addEventListener(
             eventData?.name ||
             `E-${String(index + 1).padStart(2, "0")}`;
 
-        if (
-            !confirm(
-                `Delete "${eventName}"?`
-            )
-        ) {
+        const confirmed =
+            await Notify.confirmDelete({
+                title: `ลบ "${eventName}"?`,
+                text: "การลบ Basic Event นี้ไม่สามารถย้อนกลับได้"
+            });
+
+        if (!confirmed) {
             return;
         }
 
@@ -695,8 +654,9 @@ document
 
                 if (!events[i].name) {
 
-                    alert(
-                        `Please enter the name of Basic Event E-${String(i + 1).padStart(2, "0")}.`
+                    Notify.warn(
+                        `กรุณากรอกชื่อของ Basic Event E-${String(i + 1).padStart(2, "0")}`,
+                        "Please enter the name of the Basic Event."
                     );
 
                     return;

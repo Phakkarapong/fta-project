@@ -79,12 +79,13 @@ function loadAnalysis() {
         typeof raw !== "object"
     ) {
 
-        alert(
+        Notify.error(
+            "ไม่ได้รับข้อมูลการวิเคราะห์จาก Analysis Queue",
             "No Analysis data was received from Analysis Queue."
-        );
-
-        window.location.href =
-            "analysis-queue.html";
+        ).then(function () {
+            window.location.href =
+                "analysis-queue.html";
+        });
 
         return false;
 
@@ -251,12 +252,13 @@ function loadAnalysis() {
             analysisData
         );
 
-        alert(
+        Notify.error(
+            "ข้อมูลที่ได้รับจาก Analysis Queue ไม่สมบูรณ์",
             "FTA Analysis received incomplete data from Analysis Queue."
-        );
-
-        window.location.href =
-            "analysis-queue.html";
+        ).then(function () {
+            window.location.href =
+                "analysis-queue.html";
+        });
 
         return false;
 
@@ -437,6 +439,9 @@ function renderPage() {
 
 
 
+// Single combined table (one row per Basic Event) — replaces the old
+// duplicated rendering (a "Safety Controls" card grid and a separate,
+// mostly-overlapping "Fault Tree" card grid showing the same events).
 function renderSafetyOfficerControls() {
 
     const container = document.getElementById("safetyOfficerEventControls");
@@ -445,28 +450,46 @@ function renderSafetyOfficerControls() {
 
     if (count) count.textContent = `${events.length} EVENTS`;
     if (!container) return;
-    container.innerHTML = "";
 
     if (!events.length) {
-        container.innerHTML = `<div class="text-sm text-jorpro-mute">No Basic Events received.</div>`;
+        container.innerHTML = `<div class="dt-empty">No Basic Events received from Safety Officer.</div>`;
         return;
     }
 
-    events.forEach(function(event,index) {
-        const card=document.createElement("div");
-        card.className="rounded-xl border border-cyan-500/15 bg-jorpro-canvas p-4";
-        card.innerHTML = `
-            <div class="flex items-start justify-between gap-3">
-                <div><div class="text-[10px] font-bold tracking-widest text-jorpro-blue">E-${String(index+1).padStart(2,"0")}</div><div class="text-sm font-bold text-jorpro-ink mt-1">${escapeHtml(event.name || `Basic Event ${index+1}`)}</div></div>
-                <span class="text-[9px] uppercase tracking-widest text-jorpro-blue">Safety Officer</span>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
-                <div class="rounded-lg bg-white border border-jorpro-line p-3"><div class="text-[9px] uppercase tracking-widest text-jorpro-mute font-bold">Existing Risk Control (Identify)</div><div class="text-xs text-jorpro-slate mt-2 whitespace-pre-line break-words">${escapeHtml(event.existingRiskControl || event.riskControl || "-")}</div></div>
-                <div class="rounded-lg bg-white border border-jorpro-line p-3"><div class="text-[9px] uppercase tracking-widest text-jorpro-mute font-bold">Safety Mitigation (Identify)</div><div class="text-xs text-jorpro-slate mt-2 whitespace-pre-line break-words">${escapeHtml(event.safetyMitigation || event.safetyOfficerMitigation || "-")}</div></div>
-                <div class="rounded-lg bg-white border border-jorpro-line p-3"><div class="text-[9px] uppercase tracking-widest text-jorpro-mute font-bold">Risk Owner</div><div class="text-xs text-jorpro-slate mt-2 break-words">${escapeHtml(event.riskOwner || "-")}</div></div>
-            </div>`;
-        container.appendChild(card);
-    });
+    const rows = events.map(function (event, index) {
+        const probability =
+            event.probability !== null && event.probability !== undefined && event.probability !== ""
+                ? Number(event.probability).toExponential(4)
+                : "-";
+
+        return `
+            <tr>
+                <td style="width:70px;"><span class="status-badge status-badge-blue">E-${String(index + 1).padStart(2, "0")}</span></td>
+                <td>
+                    <div style="font-weight:800;color:var(--ink);">${escapeHtml(event.name || `Basic Event ${index + 1}`)}</div>
+                    <div style="color:var(--muted);font-size:11px;margin-top:2px;">${escapeHtml(event.description || "-")}</div>
+                </td>
+                <td style="color:var(--ac);font-weight:700;">${probability}</td>
+                <td style="color:var(--body);max-width:220px;white-space:pre-line;">${escapeHtml(event.existingRiskControl || event.riskControl || "-")}</td>
+                <td style="color:var(--body);max-width:220px;white-space:pre-line;">${escapeHtml(event.safetyMitigation || event.safetyOfficerMitigation || "-")}</td>
+                <td style="color:var(--body);">${escapeHtml(event.riskOwner || "-")}</td>
+            </tr>
+        `;
+    }).join("");
+
+    container.innerHTML = `
+        <div class="data-table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Basic Event</th><th>SO Probability</th>
+                        <th>Existing Risk Control</th><th>Safety Mitigation</th><th>Risk Owner</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `;
 
 }
 
@@ -504,14 +527,10 @@ function renderAnalysisStructure() {
 // TREE
 // =====================================================
 
+// The per-event breakdown now lives entirely in the combined table
+// rendered by renderSafetyOfficerControls() — this just keeps the two
+// gate-label displays (badge + tree diagram) in sync.
 function renderTree(events) {
-
-    const container =
-        document.getElementById(
-            "treeEvents"
-        );
-
-    container.innerHTML = "";
 
     const gate =
         (
@@ -528,100 +547,6 @@ function renderTree(events) {
         "treeGate"
     ).textContent =
         gate;
-
-
-    if (events.length === 0) {
-
-        container.innerHTML = `
-            <div class="col-span-full
-                        p-6 rounded-xl
-                        bg-slate-50
-                        border border-dashed
-                        border-slate-300
-                        text-center
-                        text-sm text-amber-600">
-                No Basic Events received from Safety Officer.
-            </div>
-        `;
-
-        return;
-    }
-
-
-    events.forEach(
-        function(event, index) {
-
-            const probability =
-                event.probability !== null &&
-                event.probability !== undefined &&
-                event.probability !== ""
-                    ? Number(event.probability)
-                    : null;
-
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-            card.className =
-                "rounded-xl border border-slate-200 " +
-                "bg-slate-50 p-4";
-
-
-            card.innerHTML = `
-                <div class="text-[10px]
-                            font-bold tracking-widest
-                            text-jorpro-blue">
-                    E-${String(index + 1).padStart(2, "0")}
-                </div>
-
-                <div class="font-bold
-                            text-jorpro-ink
-                            mt-2 break-words">
-                    ${escapeHtml(
-                        event.name ||
-                        "Unnamed Event"
-                    )}
-                </div>
-
-                <p class="text-xs
-                          text-jorpro-mute
-                          mt-2
-                          leading-relaxed
-                          break-words">
-                    ${escapeHtml(
-                        event.description ||
-                        "-"
-                    )}
-                </p>
-
-                <div class="mt-3 pt-3
-                            border-t border-slate-200
-                            text-xs">
-
-                    <span class="text-jorpro-mute">
-                        Safety Officer Probability:
-                    </span>
-
-                    <strong class="ml-1
-                                   text-jorpro-blue">
-                        ${
-                            probability !== null
-                                ? probability.toExponential(4)
-                                : "Not assigned"
-                        }
-                    </strong>
-
-                </div>
-            `;
-
-            container.appendChild(
-                card
-            );
-
-        }
-    );
 
 }
 
@@ -643,7 +568,8 @@ if (continueRiskBtn) {
 
             if (!analysisData?.id) {
 
-                alert(
+                Notify.error(
+                    "ไม่พบรหัสการวิเคราะห์ (Analysis ID)",
                     "Analysis ID was not found."
                 );
 
