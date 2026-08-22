@@ -462,6 +462,10 @@ function renderSafetyOfficerControls() {
                 ? Number(event.probability).toExponential(4)
                 : "-";
 
+        // Safety Mitigation / Risk Owner / Type of Hazard are no longer
+        // shown here — Safety Officer now enters them after this Risk
+        // Assessment is complete, on their own Analysis Result page, not
+        // before it.
         return `
             <tr>
                 <td style="width:70px;"><span class="status-badge status-badge-blue">E-${String(index + 1).padStart(2, "0")}</span></td>
@@ -470,9 +474,7 @@ function renderSafetyOfficerControls() {
                     <div style="color:var(--muted);font-size:11px;margin-top:2px;">${escapeHtml(event.description || "-")}</div>
                 </td>
                 <td style="color:var(--ac);font-weight:700;">${probability}</td>
-                <td style="color:var(--body);max-width:220px;white-space:pre-line;">${escapeHtml(event.existingRiskControl || event.riskControl || "-")}</td>
-                <td style="color:var(--body);max-width:220px;white-space:pre-line;">${escapeHtml(event.safetyMitigation || event.safetyOfficerMitigation || "-")}</td>
-                <td style="color:var(--body);">${escapeHtml(event.riskOwner || "-")}</td>
+                <td style="color:var(--body);max-width:280px;white-space:pre-line;">${escapeHtml(event.existingRiskControl || event.riskControl || "-")}</td>
             </tr>
         `;
     }).join("");
@@ -483,7 +485,7 @@ function renderSafetyOfficerControls() {
                 <thead>
                     <tr>
                         <th>ID</th><th>Basic Event</th><th>SO Probability</th>
-                        <th>Existing Risk Control</th><th>Safety Mitigation</th><th>Risk Owner</th>
+                        <th>Existing Risk Control</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>

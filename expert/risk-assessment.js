@@ -697,7 +697,7 @@ function loadEvents() {
             );
 
         note.className =
-            "event-source-note mt-2 text-[10px] text-jorpro-blue";
+            "event-source-note mt-2 text-[10px] text-jorpro-blue dark:text-jorpro-blueDark";
 
         note.textContent =
             `${basicEvents.length} Basic Event(s) available for Risk Assessment`;
@@ -771,7 +771,12 @@ function createMatrix() {
                 cell.classList.add("risk-medium-cell");
             }
             else if (riskLevel === "HIGH") {
-                cell.classList.add("risk-high-cell");
+                // Via RiskMatrix so HIGH renders red ("risk-special-cell"),
+                // consistent with the badge/text colors elsewhere on this
+                // page and every other page — not the orange "risk-high-cell".
+                cell.classList.add(
+                    window.RiskMatrix ? RiskMatrix.getRiskMatrixCellClass("HIGH") : "risk-high-cell"
+                );
             }
 
             const selectedLikelihood =
@@ -911,8 +916,12 @@ function calculateAssessment() {
 
     if (resultLevel) {
         resultLevel.textContent = riskLevel;
+        // Base sizing/weight classes + the risk-level color, via
+        // RiskMatrix so HIGH renders red consistently with every other
+        // page instead of this file's own (previously dead-class) mapping.
         resultLevel.className =
-            getRiskLevelClass(riskLevel);
+            "text-sm font-bold font-mono " +
+            (window.RiskMatrix ? RiskMatrix.getRiskLevelTextClass(riskLevel) : getRiskLevelClass(riskLevel));
     }
 
     createMatrix();
@@ -1298,16 +1307,37 @@ function renderFinalAssessmentSummary() {
     // plus a separate "pending" list below repeating the same events again).
     // Each row's "ประเมิน" action jumps to the scoring panel with that
     // event preselected.
-    const rowsHtml = targets.map(
-        function (target, index) {
-
+    //
+    // Ranked HIGH -> MEDIUM -> LOW via RiskMatrix.compareByRisk (assessed
+    // events only — an event with no assessment yet has no risk to rank
+    // by, so PENDING rows sort after all assessed ones, keeping their own
+    // relative order).
+    const decorated = targets.map(
+        function (target) {
             const assessment =
                 savedAssessments.find(
                     function (item) {
                         return String(item.eventId) === String(target.id);
                     }
                 );
+            return { target: target, assessment: assessment || null };
+        }
+    );
 
+    decorated.sort(function (a, b) {
+        if (a.assessment && b.assessment) {
+            return window.RiskMatrix ? RiskMatrix.compareByRisk(a.assessment, b.assessment) : 0;
+        }
+        if (a.assessment && !b.assessment) return -1;
+        if (!a.assessment && b.assessment) return 1;
+        return 0;
+    });
+
+    const rowsHtml = decorated.map(
+        function (entry, index) {
+
+            const target = entry.target;
+            const assessment = entry.assessment;
             const assessed = !!assessment;
             const riskClass = assessed ? riskBadgeClassFor(assessment.riskLevel) : "status-badge-slate";
 
@@ -1335,7 +1365,7 @@ function renderFinalAssessmentSummary() {
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>#</th><th>Event</th><th>Status</th><th>Likelihood</th><th>Severity</th>
+                        <th>Rank</th><th>Event</th><th>Status</th><th>Likelihood</th><th>Severity</th>
                         <th>Score</th><th>Risk Level</th><th class="text-right">Action</th>
                     </tr>
                 </thead>
@@ -1384,13 +1414,13 @@ function renderFinalAssessmentSummary() {
         if (!allComplete) {
 
             overall.className =
-                "rounded-xl p-4 border border-amber-200 bg-amber-50";
+                "rounded-xl p-4 border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10";
 
             overall.innerHTML = `
-                <div class="text-xs font-bold text-amber-600">
+                <div class="text-xs font-bold text-amber-600 dark:text-amber-400">
                     IN PROGRESS
                 </div>
-                <div class="text-xs text-jorpro-slate mt-1">
+                <div class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-1">
                     ยังประเมินไม่ครบ ${targets.length - savedAssessments.length} Event
                 </div>
             `;
@@ -1398,13 +1428,13 @@ function renderFinalAssessmentSummary() {
         } else if (highCount > 0) {
 
             overall.className =
-                "rounded-xl p-4 border border-jorpro-red/25 bg-red-500/5";
+                "rounded-xl p-4 border border-jorpro-red/25 dark:border-jorpro-redDark/30 bg-red-500/5 dark:bg-jorpro-redDark/10";
 
             overall.innerHTML = `
-                <div class="text-xs font-bold text-jorpro-red">
+                <div class="text-xs font-bold text-jorpro-red dark:text-jorpro-redDark">
                     INITIAL RISK OVERVIEW · HIGH RISK PRESENT
                 </div>
-                <div class="text-xs text-jorpro-slate mt-1">
+                <div class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-1">
                     พบ ${highCount} Event ที่มี Initial Risk ระดับ High รอ Safety Officer พิจารณาลงคะแนนขั้นสุดท้าย
                 </div>
             `;
@@ -1412,13 +1442,13 @@ function renderFinalAssessmentSummary() {
         } else if (mediumCount > 0) {
 
             overall.className =
-                "rounded-xl p-4 border border-amber-200 bg-amber-50";
+                "rounded-xl p-4 border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10";
 
             overall.innerHTML = `
-                <div class="text-xs font-bold text-amber-600">
+                <div class="text-xs font-bold text-amber-600 dark:text-amber-400">
                     INITIAL RISK OVERVIEW · MEDIUM RISK PRESENT
                 </div>
-                <div class="text-xs text-jorpro-slate mt-1">
+                <div class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-1">
                     ทุก Event ประเมินครบแล้ว รอ Safety Officer ลงคะแนน Acceptability และ Mitigation ขั้นสุดท้าย
                 </div>
             `;
@@ -1426,13 +1456,13 @@ function renderFinalAssessmentSummary() {
         } else {
 
             overall.className =
-                "rounded-xl p-4 border border-emerald-200 bg-emerald-500/5";
+                "rounded-xl p-4 border border-emerald-200 dark:border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10";
 
             overall.innerHTML = `
-                <div class="text-xs font-bold text-emerald-600">
+                <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                     INITIAL RISK OVERVIEW · LOW RISK
                 </div>
-                <div class="text-xs text-jorpro-slate mt-1">
+                <div class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-1">
                     ทุก Event อยู่ในระดับ Initial Risk ต่ำ รอ Safety Officer ยืนยันผลขั้นสุดท้าย
                 </div>
             `;

@@ -4,14 +4,26 @@
    Single indigo accent, neutral gray-white surfaces, sidebar
    app shell, clean data tables. Replaces the old style.css
    (still on disk, no longer linked) on every live page.
+
+   DARK MODE: this file is light-mode-first. Every token below
+   is re-declared for dark under [data-theme="dark"] at the very
+   end of the file (kept there, not inline here, so it always
+   wins the cascade regardless of where else a var is declared).
+   Theme is chosen by theme-boot.js (sets data-theme on <html>
+   before first paint) and switched by theme-toggle.js. Always
+   consume colors via var(--x) in new rules — a literal hex/rgba
+   here silently breaks dark mode.
    ========================================================= */
 
 :root {
+    color-scheme: light;
+
     /* Accent */
     --ac: #4F46E5;
     --ac-hover: #4338CA;
     --ac-tint: #EEF2FF;
     --ac-ring: rgba(79, 70, 229, 0.18);
+    --ac-border: #C7D2FE;
 
     /* Neutrals */
     --ink: #0F172A;
@@ -21,6 +33,11 @@
     --border-soft: #EDF1F7;
     --canvas: #F8FAFC;
     --surface: #FFFFFF;
+
+    /* Text/icon color that sits on top of a solid --ac fill (buttons,
+       active dots) — stays white in both themes, kept as a token so
+       nothing has to hardcode #fff. */
+    --on-accent: #FFFFFF;
 
     /* Status */
     --low: #059669;
@@ -34,6 +51,7 @@
     --high-border: #FED7AA;
     --special: #E11D48;
     --special-tint: #FFF1F2;
+    --special-tint-strong: #FFE4E8;
     --special-border: #FECDD3;
 
     --radius-sm: 8px;
@@ -53,14 +71,88 @@
    framework-free utility now that Tailwind's CDN utilities are gone. */
 .hidden { display: none !important; }
 
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    /* Explicit (not left to propagate from body) so the UA never
+       hoists body's scrolling fade-to-canvas gradient onto the
+       canvas itself — see the note on html::before below for why
+       that distinction matters here. */
+    background: var(--canvas);
+}
+
+/* =========================================================
+   APP SKY — a single, site-wide fixed sky+cloud backdrop.
+   Pure CSS (no image asset), painted once via html::before so
+   every page that loads this stylesheet gets it automatically —
+   nothing to add per-page, nothing to duplicate.
+
+   Uses a real `position: fixed` box (the ::before), not
+   `background-attachment: fixed`, which is unreliable on iOS
+   Safari. It sits at z-index -1, behind the normal document
+   flow, so it never needs special z-index handling from content
+   above it (see the body rule below for how the fade to canvas
+   works as you scroll).
+   ========================================================= */
+
+html::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 460px 160px at 6% 8%, rgba(255, 255, 255, 0.90), transparent 70%),
+        radial-gradient(ellipse 360px 130px at 84% 14%, rgba(255, 255, 255, 0.75), transparent 70%),
+        radial-gradient(ellipse 420px 150px at 30% 27%, rgba(255, 255, 255, 0.55), transparent 72%),
+        radial-gradient(ellipse 380px 140px at 66% 35%, rgba(255, 255, 255, 0.40), transparent 72%),
+        linear-gradient(180deg, #DCEBFF 0%, #EAF3FF 30%, #F4F8FE 55%, var(--canvas) 80%);
+    transition: background 0.2s ease;
+}
+
+html[data-theme="dark"]::before {
+    /* Night sky — same blob layout, dimmed to a haze instead of
+       solid clouds. No stars/moon by design; this is a working
+       app, not a landing-page flourish. */
+    background:
+        radial-gradient(ellipse 460px 160px at 6% 8%, rgba(255, 255, 255, 0.07), transparent 70%),
+        radial-gradient(ellipse 360px 130px at 84% 14%, rgba(255, 255, 255, 0.05), transparent 70%),
+        radial-gradient(ellipse 420px 150px at 30% 27%, rgba(255, 255, 255, 0.04), transparent 72%),
+        radial-gradient(ellipse 380px 140px at 66% 35%, rgba(255, 255, 255, 0.03), transparent 72%),
+        linear-gradient(180deg, #0B1220 0%, #10203A 35%, #16294A 60%, var(--canvas) 85%);
+}
+
+@media (max-width: 640px) {
+    /* Keep the visible sky/cloud band to roughly the top 40% of a
+       phone screen instead of the ~80% used on desktop. */
+    html::before {
+        background:
+            radial-gradient(ellipse 220px 90px at 8% 6%, rgba(255, 255, 255, 0.85), transparent 70%),
+            radial-gradient(ellipse 180px 75px at 80% 12%, rgba(255, 255, 255, 0.65), transparent 70%),
+            linear-gradient(180deg, #DCEBFF 0%, #EAF3FF 22%, var(--canvas) 42%);
+    }
+    html[data-theme="dark"]::before {
+        background:
+            radial-gradient(ellipse 220px 90px at 8% 6%, rgba(255, 255, 255, 0.06), transparent 70%),
+            radial-gradient(ellipse 180px 75px at 80% 12%, rgba(255, 255, 255, 0.04), transparent 70%),
+            linear-gradient(180deg, #0B1220 0%, #10203A 24%, var(--canvas) 42%);
+    }
+}
 
 body {
     margin: 0;
-    background: var(--canvas);
+    /* Transparent at the top (so html::before's fixed sky shows
+       through), settling into the flat --canvas fill by ~1 screen
+       down, so long pages read exactly as before once scrolled
+       past the hero band. */
+    background: linear-gradient(180deg, transparent 0, transparent 55vh, var(--canvas) 100vh);
     color: var(--ink);
     font-family: "Plus Jakarta Sans", "Noto Sans Thai", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (max-width: 640px) {
+    body { background: linear-gradient(180deg, transparent 0, transparent 20vh, var(--canvas) 42vh); }
 }
 
 h1, h2, h3, h4 { font-family: "Plus Jakarta Sans", "Noto Sans Thai", Arial, sans-serif; }
@@ -69,8 +161,8 @@ h1, h2, h3, h4 { font-family: "Plus Jakarta Sans", "Noto Sans Thai", Arial, sans
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { border-radius: 999px; background: #CBD5E1; }
-::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 button, input, textarea, select { font-family: inherit; }
 button { cursor: pointer; }
@@ -171,6 +263,24 @@ textarea:focus-visible, select:focus-visible {
 .sidebar-nav-link.active { background: var(--ac-tint); color: var(--ac-hover); }
 .sidebar-nav-link.active svg { color: var(--ac); }
 
+/* New-result notification count — rendered by shell.js next to "Analysis
+   Result" for Safety Officer whenever Expert has completed analyses SO
+   hasn't opened yet (Shell.getPendingSoReviewRecords()). */
+.sidebar-nav-badge {
+    margin-left: auto;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--special);
+    color: var(--on-accent);
+    font-size: 10.5px;
+    font-weight: 800;
+    line-height: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
 .sidebar-footer {
     border-top: 1px solid var(--border-soft);
     padding-top: 12px;
@@ -219,6 +329,8 @@ textarea:focus-visible, select:focus-visible {
     border-bottom: 1px solid var(--border);
 }
 
+[data-theme="dark"] .topbar { background: rgba(11, 18, 32, 0.82); }
+
 .topbar-menu-btn {
     display: none;
     width: 36px; height: 36px;
@@ -230,7 +342,41 @@ textarea:focus-visible, select:focus-visible {
     flex-shrink: 0;
 }
 
-.topbar-title { font-weight: 800; font-size: 14px; color: var(--ink); }
+.topbar-title {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* Back / Home — shown on every shell page, desktop and mobile alike
+   (unlike .topbar-menu-btn, which is mobile-only). */
+.topbar-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.topbar-icon-btn {
+    display: inline-flex;
+    width: 36px; height: 36px;
+    align-items: center; justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--body);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar-icon-btn:hover { color: var(--ac); border-color: var(--ac-border); background: var(--ac-tint); }
+.topbar-icon-btn:active { transform: translateY(1px); }
+.topbar-icon-btn:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
 
 .main-content {
     flex: 1;
@@ -326,17 +472,17 @@ textarea:focus-visible, select:focus-visible {
 
 .ui-btn:active { transform: scale(0.98); }
 
-.ui-btn-primary { background: var(--ac); color: #fff; }
+.ui-btn-primary { background: var(--ac); color: var(--on-accent); }
 .ui-btn-primary:hover { background: var(--ac-hover); }
 
 .ui-btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--border); }
-.ui-btn-secondary:hover { background: var(--canvas); border-color: #CBD5E1; }
+.ui-btn-secondary:hover { background: var(--canvas); border-color: var(--muted); }
 
 .ui-btn-ghost { background: transparent; color: var(--body); }
 .ui-btn-ghost:hover { background: var(--canvas); color: var(--ink); }
 
 .ui-btn-danger { background: var(--special-tint); color: var(--special); border-color: var(--special-border); }
-.ui-btn-danger:hover { background: #FFE4E8; }
+.ui-btn-danger:hover { background: var(--special-tint-strong); }
 
 .ui-btn-sm { height: 32px; padding: 0 12px; font-size: 12px; }
 .ui-btn-block { width: 100%; }
@@ -381,10 +527,54 @@ input[type="text"].ui-input, input[type="datetime-local"].ui-input {
     padding: 13px 14px;
     border-radius: var(--radius-md);
     background: var(--ac-tint);
-    border: 1px solid #C7D2FE;
+    border: 1px solid var(--ac-border);
     color: var(--ac-hover);
     font-size: 12px;
     line-height: 1.5;
+}
+
+/* Dashboard "new result from Expert" banner — safety-officer.html,
+   populated by Shell.getPendingSoReviewRecords(). */
+.ui-notify-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border-radius: var(--radius-lg);
+    background: var(--ac-tint);
+    border: 1px solid var(--ac-border);
+}
+
+.ui-notify-banner-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--ac);
+    color: var(--on-accent);
+}
+
+.ui-notify-banner-body { flex: 1; min-width: 0; }
+.ui-notify-banner-title { font-size: 13.5px; font-weight: 800; color: var(--ink); }
+.ui-notify-banner-sub {
+    font-size: 12px;
+    color: var(--body);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui-notify-banner .ui-btn { flex-shrink: 0; }
+
+@media (max-width: 560px) {
+    .ui-notify-banner { flex-wrap: wrap; }
+    .ui-notify-banner-sub { white-space: normal; }
+    .ui-notify-banner .ui-btn { width: 100%; }
 }
 
 
@@ -451,7 +641,7 @@ input[type="text"].ui-input, input[type="datetime-local"].ui-input {
     flex-shrink: 0;
 }
 
-.ui-step.done .ui-step-dot { background: var(--ac); color: #fff; border-color: var(--ac); }
+.ui-step.done .ui-step-dot { background: var(--ac); color: var(--on-accent); border-color: var(--ac); }
 .ui-step.active .ui-step-dot { background: var(--ac-tint); color: var(--ac); border-color: var(--ac); }
 
 .ui-step-label { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
@@ -488,6 +678,8 @@ input[type="text"].ui-input, input[type="datetime-local"].ui-input {
     }
     .ui-sticky-actions .ui-btn { flex: 1; }
     .ui-sticky-spacer { height: 78px; }
+
+    [data-theme="dark"] .ui-sticky-actions { background: rgba(19, 27, 44, 0.92); }
 }
 
 
@@ -508,6 +700,15 @@ input[type="text"].ui-input, input[type="datetime-local"].ui-input {
     text-transform: uppercase;
     border: 1px solid transparent;
 }
+
+/* Plain text-color utilities for status text that isn't a full
+   badge/chip (e.g. a page's own custom "final status" line) — use
+   these instead of inline style="color:#hex", which silently
+   breaks dark mode. */
+.text-risk-low { color: var(--low); }
+.text-risk-medium { color: var(--medium); }
+.text-risk-high { color: var(--high); }
+.text-risk-special { color: var(--special); }
 
 .status-badge-blue { background: var(--ac-tint); color: var(--ac-hover); }
 .status-badge-amber { background: var(--medium-tint); color: var(--medium); border-color: var(--medium-border); }
@@ -561,7 +762,7 @@ input[type="text"].ui-input, input[type="datetime-local"].ui-input {
     white-space: nowrap;
 }
 
-.dt-filter-chip.active { background: var(--ac); border-color: var(--ac); color: #fff; }
+.dt-filter-chip.active { background: var(--ac); border-color: var(--ac); color: var(--on-accent); }
 
 .data-table-desktop { display: none; }
 .data-table-mobile { display: block; }
@@ -623,7 +824,7 @@ table.data-table tbody tr.dt-row:hover { background: var(--ac-tint); }
 }
 
 .dt-action-btn:hover { border-color: var(--ac); background: var(--ac-tint); }
-.dt-action-btn-primary { background: var(--ac); border-color: var(--ac); color: #fff; }
+.dt-action-btn-primary { background: var(--ac); border-color: var(--ac); color: var(--on-accent); }
 .dt-action-btn-primary:hover { background: var(--ac-hover); }
 .dt-action-btn-danger { color: var(--special); border-color: var(--special-border); }
 .dt-action-btn-danger:hover { background: var(--special-tint); }
@@ -744,6 +945,7 @@ table.data-table tbody tr.dt-row:hover { background: var(--ac-tint); }
 .risk-special-cell { background: var(--special-tint); border-color: var(--special-border); color: var(--special); }
 
 .matrix-cell:not(.matrix-header):hover { transform: translateY(-1px); filter: brightness(0.97); }
+[data-theme="dark"] .matrix-cell:not(.matrix-header):hover { filter: brightness(1.18); }
 
 .selected-risk {
     outline: 2px solid var(--ac);
@@ -758,76 +960,49 @@ table.data-table tbody tr.dt-row:hover { background: var(--ac-tint); }
 
 /* =========================================================
    LANDING PAGE — role select
+   Fully superseded by the jp-* prefixed styles inside
+   index.html's own <style> block (see the comment there).
+   Removed rather than left dead: same class names
+   (.landing-logo, .role-grid, .role-card-icon, ...) used to
+   silently collide with the jp- rules at equal specificity,
+   which broke things like the logo's aspect-ratio the moment
+   index.html stopped setting an explicit height.
    ========================================================= */
 
-.landing-wrap {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* =========================================================
+   THEME TOGGLE — sun/moon button, rendered by theme-toggle.js
+   into the sidebar footer (shell pages) or the landing page.
+   ========================================================= */
+
+.theme-toggle-btn {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 32px 20px;
-    background: var(--canvas);
-}
-
-.landing-logo { width: 52px; height: 52px; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-md); }
-
-.landing-title { font-size: 15px; font-weight: 800; color: var(--ink); margin-top: 14px; }
-.landing-copy { font-size: 13px; color: var(--muted); margin-top: 4px; text-align: center; max-width: 380px; }
-
-.role-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    width: min(680px, 100%);
-    margin-top: 32px;
-}
-
-@media (min-width: 640px) {
-    .role-grid { grid-template-columns: 1fr 1fr; }
-}
-
-.role-card {
-    background: var(--surface);
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    padding: 24px;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-}
-
-.role-card:hover { border-color: var(--ac); box-shadow: var(--shadow-md); transform: translateY(-2px); }
-
-.role-card-icon {
-    width: 42px; height: 42px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--ac-tint);
-    color: var(--ac);
-}
-
-.role-card-title { font-size: 16px; font-weight: 800; color: var(--ink); }
-.role-card-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
-
-.trust-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 30px;
-}
-
-.trust-chip {
-    padding: 6px 13px;
-    border-radius: 999px;
     background: var(--surface);
-    border: 1px solid var(--border);
     color: var(--body);
-    font-size: 11px;
-    font-weight: 700;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle-btn:hover { background: var(--canvas); color: var(--ink); border-color: var(--muted); }
+
+.sidebar-footer-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-footer-row .sidebar-role-pill { flex: 1; min-width: 0; }
+
+.landing-theme-toggle {
+    position: absolute;
+    top: 18px;
+    right: 18px;
 }
 
 
@@ -851,4 +1026,71 @@ table.data-table tbody tr.dt-row:hover { background: var(--ac-tint); }
     border-radius: var(--radius-md) !important;
     font-family: "Plus Jakarta Sans", "Noto Sans Thai", Arial, sans-serif !important;
     font-size: 12.5px !important;
+}
+
+[data-theme="dark"] .swal2-popup.jorpro-swal-popup {
+    background: var(--surface);
+    color: var(--ink);
+}
+
+[data-theme="dark"] .jorpro-swal-popup .swal2-html-container,
+[data-theme="dark"] .jorpro-swal-popup #swal2-title { color: var(--ink); }
+
+[data-theme="dark"] .jorpro-swal-toast.swal2-popup {
+    background: var(--surface);
+    color: var(--ink);
+}
+
+
+/* =========================================================
+   DARK THEME — token overrides.
+   Deliberately kept as the LAST rule in the file: every token
+   this file defines lives in the :root block up top, so a plain
+   [data-theme="dark"] block here (same specificity as :root,
+   later in source order) is guaranteed to win the cascade for
+   every var() consumer above, without touching a single
+   component rule. Applied via the `data-theme` attribute that
+   theme-boot.js sets on <html> before first paint, and flipped
+   at runtime by theme-toggle.js.
+   ========================================================= */
+
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    /* Accent — brightened so it still reads on dark surfaces */
+    --ac: #818CF8;
+    --ac-hover: #A5B4FC;
+    --ac-tint: rgba(129, 140, 248, 0.16);
+    --ac-ring: rgba(129, 140, 248, 0.30);
+    --ac-border: rgba(129, 140, 248, 0.35);
+
+    /* Neutrals — inverted ramp */
+    --ink: #F1F5F9;
+    --body: #CBD5E1;
+    --muted: #64748B;
+    --border: #293548;
+    --border-soft: #1E293B;
+    --canvas: #0B1220;
+    --surface: #131B2C;
+
+    /* Status — desaturated a touch, tints become low-alpha overlays
+       instead of near-white pastels (which would look like solid
+       light chips floating on a dark page). */
+    --low: #34D399;
+    --low-tint: rgba(52, 211, 153, 0.14);
+    --low-border: rgba(52, 211, 153, 0.35);
+    --medium: #FBBF24;
+    --medium-tint: rgba(251, 191, 36, 0.14);
+    --medium-border: rgba(251, 191, 36, 0.35);
+    --high: #FB923C;
+    --high-tint: rgba(251, 146, 60, 0.14);
+    --high-border: rgba(251, 146, 60, 0.35);
+    --special: #FB7185;
+    --special-tint: rgba(251, 113, 133, 0.14);
+    --special-tint-strong: rgba(251, 113, 133, 0.24);
+    --special-border: rgba(251, 113, 133, 0.35);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.65);
 }

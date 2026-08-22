@@ -229,7 +229,7 @@ function render() {
             "PENDING EXPERT";
 
         badge.className =
-            "px-3 py-1.5 rounded-full border border-jorpro-blue/25 text-jorpro-blueBright text-[10px] font-bold";
+            "px-3 py-1.5 rounded-full border border-jorpro-blue/25 dark:border-jorpro-blueDark/30 text-jorpro-blueBright dark:text-jorpro-blueBrightDark text-[10px] font-bold";
 
     } else {
 
@@ -237,7 +237,7 @@ function render() {
             "DRAFT";
 
         badge.className =
-            "px-3 py-1.5 rounded-full border border-amber-200 text-amber-600 text-[10px] font-bold";
+            "px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold";
 
     }
 

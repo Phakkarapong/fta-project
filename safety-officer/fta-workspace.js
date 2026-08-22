@@ -223,23 +223,16 @@ function renderEvents() {
                                       placeholder="รายละเอียดของสาเหตุ">${escapeHtml(event.description || "")}</textarea>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="ui-field">
-                                <label class="ui-label">Existing Risk Control</label>
-                                <textarea class="event-risk-control-input ui-textarea" data-index="${index}" rows="3"
-                                          placeholder="Existing risk control">${escapeHtml(event.existingRiskControl || event.riskControl || "")}</textarea>
-                            </div>
-                            <div class="ui-field">
-                                <label class="ui-label">Safety Mitigation</label>
-                                <textarea class="event-safety-mitigation-input ui-textarea" data-index="${index}" rows="3"
-                                          placeholder="Safety mitigation">${escapeHtml(event.safetyMitigation || event.safetyOfficerMitigation || "")}</textarea>
-                            </div>
-                            <div class="ui-field" style="margin-bottom:0;">
-                                <label class="ui-label">Risk Owner</label>
-                                <input type="text" class="event-risk-owner-input ui-input" data-index="${index}"
-                                       value="${escapeHtml(event.riskOwner || "")}" placeholder="Risk owner">
-                            </div>
+                        <div class="ui-field" style="margin-bottom:0;">
+                            <label class="ui-label">Existing Risk Control</label>
+                            <textarea class="event-risk-control-input ui-textarea" data-index="${index}" rows="3"
+                                      placeholder="Existing risk control">${escapeHtml(event.existingRiskControl || event.riskControl || "")}</textarea>
                         </div>
+
+                        <!-- Safety Mitigation / Risk Owner / Type of Hazard are no
+                             longer collected here — they belong to Safety Officer
+                             → Analysis Result, entered after the Expert's Risk
+                             Assessment is complete, not before it. -->
 
                     </div>
                 </td>
@@ -289,8 +282,8 @@ function updateLiveStatus(message, isSaved = false) {
 
     status.className =
         isSaved
-            ? "mt-4 text-[10px] font-bold text-emerald-600"
-            : "mt-4 text-[10px] font-bold text-jorpro-blue";
+            ? "mt-4 text-[10px] font-bold text-emerald-600 dark:text-emerald-400"
+            : "mt-4 text-[10px] font-bold text-jorpro-blue dark:text-jorpro-blueDark";
 
 }
 
@@ -311,11 +304,8 @@ function addBasicEvent() {
         existingRiskControl:
             "",
 
-        safetyMitigation:
-            "",
-
-        riskOwner:
-            "",
+        // Safety Mitigation / Risk Owner / Type of Hazard are entered later,
+        // by Safety Officer, on the Analysis Result page — not here.
 
         probability:
             null
@@ -413,20 +403,6 @@ function collectEventInputs() {
         const index = Number(input.dataset.index);
         if (analysisData.ftaData.basicEvents[index]) {
             analysisData.ftaData.basicEvents[index].existingRiskControl = input.value.trim();
-        }
-    });
-
-    document.querySelectorAll(".event-safety-mitigation-input").forEach(function(input) {
-        const index = Number(input.dataset.index);
-        if (analysisData.ftaData.basicEvents[index]) {
-            analysisData.ftaData.basicEvents[index].safetyMitigation = input.value.trim();
-        }
-    });
-
-    document.querySelectorAll(".event-risk-owner-input").forEach(function(input) {
-        const index = Number(input.dataset.index);
-        if (analysisData.ftaData.basicEvents[index]) {
-            analysisData.ftaData.basicEvents[index].riskOwner = input.value.trim();
         }
     });
 
@@ -530,16 +506,6 @@ document.addEventListener(
 
         if (event.target.matches(".event-risk-control-input")) {
             updateEventLive(Number(event.target.dataset.index), "existingRiskControl", event.target.value);
-            return;
-        }
-
-        if (event.target.matches(".event-safety-mitigation-input")) {
-            updateEventLive(Number(event.target.dataset.index), "safetyMitigation", event.target.value);
-            return;
-        }
-
-        if (event.target.matches(".event-risk-owner-input")) {
-            updateEventLive(Number(event.target.dataset.index), "riskOwner", event.target.value);
         }
 
     }

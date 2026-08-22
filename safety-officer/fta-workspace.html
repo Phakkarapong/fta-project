@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>FTA Data Entry - Safety Officer</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
@@ -15,15 +16,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
     <script>
+        // darkMode: 'class' + the *Dark color set below is driven by the
+        // same `dark` class on <html> that theme-toggle.js already toggles
+        // for theme.css's [data-theme] branch (see ThemeToggle.apply in
+        // theme-toggle.js) — both systems flip together from one click.
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
                         jorpro: {
-                            ink: '#0F172A', slate: '#475569', mute: '#94A3B8',
-                            canvas: '#F8FAFC', surface: '#FFFFFF', line: '#E2E8F0',
-                            blue: '#4F46E5', blueMid: '#4338CA', blueBright: '#6366F1',
-                            red: '#E11D48', redDim: '#FFF1F2', redLight: '#FDA4AF',
+                            ink: '#0F172A', inkDark: '#F1F5F9',
+                            slate: '#475569', slateDark: '#CBD5E1',
+                            mute: '#94A3B8', muteDark: '#64748B',
+                            canvas: '#F8FAFC', canvasDark: '#0B1220',
+                            surface: '#FFFFFF', surfaceDark: '#131B2C',
+                            line: '#E2E8F0', lineDark: '#293548',
+                            blue: '#4F46E5', blueDark: '#818CF8',
+                            blueMid: '#4338CA', blueMidDark: '#A5B4FC',
+                            blueBright: '#6366F1', blueBrightDark: '#818CF8',
+                            red: '#E11D48', redDark: '#FB7185',
+                            redDim: '#FFF1F2', redDimDark: 'rgba(251,113,133,0.14)',
+                            redLight: '#FDA4AF', redLightDark: '#FB7185',
                         }
                     },
                     fontFamily: {
@@ -36,6 +50,7 @@
         }
     </script>
 
+    <script src="../theme-boot.js"></script>
     <link rel="stylesheet" href="../theme.css">
 </head>
 
@@ -60,54 +75,54 @@
 
     <div style="display:flex;flex-direction:column;gap:18px;">
 
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+        <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 shadow-sm">
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                    <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">STEP 2 · FTA DATA ENTRY</span>
-                    <h2 class="text-2xl font-extrabold text-jorpro-ink mt-1">Fault Tree Data</h2>
-                    <p class="text-xs text-jorpro-mute mt-2">Safety Officer records the structure and event information only.</p>
+                    <span class="text-[10px] font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark uppercase">STEP 2 · FTA DATA ENTRY</span>
+                    <h2 class="text-2xl font-extrabold text-jorpro-ink dark:text-jorpro-inkDark mt-1">Fault Tree Data</h2>
+                    <p class="text-xs text-jorpro-mute dark:text-jorpro-muteDark mt-2">Safety Officer records the structure and event information only.</p>
                 </div>
                 <div id="statusBadge" class="status-badge status-badge-amber">DRAFT</div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">
-                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4">
-                    <span class="text-[10px] uppercase tracking-wider text-jorpro-mute">Analysis</span>
-                    <div id="analysisTitleDisplay" class="text-sm font-bold text-jorpro-ink mt-1">-</div>
+                <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4">
+                    <span class="text-[10px] uppercase tracking-wider text-jorpro-mute dark:text-jorpro-muteDark">Analysis</span>
+                    <div id="analysisTitleDisplay" class="text-sm font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-1">-</div>
                 </div>
-                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4">
-                    <span class="text-[10px] uppercase tracking-wider text-jorpro-mute">Top Event</span>
-                    <div id="topEventDisplay" class="text-sm font-bold text-jorpro-blueBright mt-1">-</div>
+                <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4">
+                    <span class="text-[10px] uppercase tracking-wider text-jorpro-mute dark:text-jorpro-muteDark">Top Event</span>
+                    <div id="topEventDisplay" class="text-sm font-bold text-jorpro-blueBright dark:text-jorpro-blueBrightDark mt-1">-</div>
                 </div>
             </div>
         </section>
 
-        <section class="bg-white text-jorpro-slate rounded-2xl p-6 shadow-sm">
+        <section class="bg-white dark:bg-jorpro-surfaceDark text-jorpro-slate dark:text-jorpro-slateDark rounded-2xl p-6 shadow-sm">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                    <h3 class="text-xl font-bold text-jorpro-ink">Fault Tree Structure</h3>
-                    <p class="text-xs text-jorpro-mute">ระบุ Logic Gate และเหตุการณ์ที่เป็นสาเหตุ โดยไม่กรอก Probability</p>
+                    <h3 class="text-xl font-bold text-jorpro-ink dark:text-jorpro-inkDark">Fault Tree Structure</h3>
+                    <p class="text-xs text-jorpro-mute dark:text-jorpro-muteDark">ระบุ Logic Gate และเหตุการณ์ที่เป็นสาเหตุ โดยไม่กรอก Probability</p>
                 </div>
                 <button id="gateBtn" type="button" class="ui-btn ui-btn-primary">GATE: OR</button>
             </div>
 
-            <div class="mt-6 p-5 rounded-2xl bg-jorpro-blue/5 border border-jorpro-line text-center">
-                <div class="text-[10px] uppercase tracking-widest text-jorpro-blue font-bold">TOP EVENT</div>
-                <div id="treeTopEvent" class="mt-2 text-lg font-extrabold text-jorpro-ink">-</div>
+            <div class="mt-6 p-5 rounded-2xl bg-jorpro-blue/5 dark:bg-jorpro-blueDark/10 border border-jorpro-line dark:border-jorpro-lineDark text-center">
+                <div class="text-[10px] uppercase tracking-widest text-jorpro-blue dark:text-jorpro-blueDark font-bold">TOP EVENT</div>
+                <div id="treeTopEvent" class="mt-2 text-lg font-extrabold text-jorpro-ink dark:text-jorpro-inkDark">-</div>
             </div>
-            <div class="flex justify-center py-4"><div class="w-0.5 h-8 bg-jorpro-blue/30"></div></div>
+            <div class="flex justify-center py-4"><div class="w-0.5 h-8 bg-jorpro-blue/30 dark:bg-jorpro-blueDark/30"></div></div>
             <div class="flex justify-center">
-                <div id="treeGate" class="w-24 h-14 rounded-xl border-2 border-jorpro-blue bg-white flex items-center justify-center font-extrabold text-jorpro-blue">OR</div>
+                <div id="treeGate" class="w-24 h-14 rounded-xl border-2 border-jorpro-blue dark:border-jorpro-blueDark bg-white dark:bg-jorpro-surfaceDark flex items-center justify-center font-extrabold text-jorpro-blue dark:text-jorpro-blueDark">OR</div>
             </div>
         </section>
 
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+        <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 shadow-sm">
             <div class="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                    <h3 class="text-lg font-bold text-jorpro-ink">Basic Event Information</h3>
-                    <p class="text-xs text-jorpro-mute">กรอกข้อมูลของ Basic Event รวมถึงมาตรการควบคุมและ Risk Owner — คลิก "แก้ไข" เพื่อเปิดรายละเอียด</p>
+                    <h3 class="text-lg font-bold text-jorpro-ink dark:text-jorpro-inkDark">Basic Event Information</h3>
+                    <p class="text-xs text-jorpro-mute dark:text-jorpro-muteDark">กรอกข้อมูลของ Basic Event และมาตรการควบคุมที่มีอยู่ — คลิก "แก้ไข" เพื่อเปิดรายละเอียด</p>
                 </div>
-                <span id="eventCount" class="text-xs font-bold text-jorpro-blue">0 EVENTS</span>
+                <span id="eventCount" class="text-xs font-bold text-jorpro-blue dark:text-jorpro-blueDark">0 EVENTS</span>
             </div>
 
             <div id="liveSaveStatus" class="mt-4 text-[10px] font-bold" style="color:var(--low);">
@@ -123,9 +138,9 @@
             </div>
         </section>
 
-        <section class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-            <b class="text-xs text-amber-600">SAFETY OFFICER LIMITATION</b>
-            <p class="text-xs text-jorpro-slate mt-2 leading-relaxed">
+        <section class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-5">
+            <b class="text-xs text-amber-600 dark:text-amber-400">SAFETY OFFICER LIMITATION</b>
+            <p class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-2 leading-relaxed">
                 ห้ามกรอก Failure Probability, FTA Probability, Likelihood, Severity หรือ Risk Score
                 ในขั้นตอนนี้ ข้อมูลดังกล่าวเป็นหน้าที่ของ Expert
             </p>
@@ -145,6 +160,7 @@
 
     <script src="../icons.js"></script>
     <script src="../notify.js"></script>
+    <script src="../theme-toggle.js"></script>
     <script src="../shell.js"></script>
     <script>
         Shell.mount({ role: "safety-officer", active: "new", title: "FTA Data Entry" });

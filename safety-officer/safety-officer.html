@@ -4,9 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>Dashboard - Safety Officer | JorproA</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
+    <script src="../theme-boot.js"></script>
     <link rel="stylesheet" href="../theme.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,9 +28,11 @@
 
             <main class="main-content" id="pageContent">
 
+                <div id="soNotificationBanner"></div>
+
                 <div class="ui-card ui-card-pad" style="margin-bottom:20px;">
                     <span class="ui-eyebrow">SAFETY OPERATIONS CENTER</span>
-                    <h1 class="ui-h1">สวัสดี, Safety Officer</h1>
+                    <h1 class="ui-h1">Safety Officer</h1>
                     <p class="ui-sub">ภาพรวมงานวิเคราะห์ Fault Tree ทั้งหมดของคุณ</p>
                 </div>
 
@@ -90,6 +94,7 @@
 
     <script src="../icons.js"></script>
     <script src="../notify.js"></script>
+    <script src="../theme-toggle.js"></script>
     <script src="../shell.js"></script>
     <script>
         Shell.mount({ role: "safety-officer", active: "dashboard", title: "Dashboard" });
@@ -151,6 +156,37 @@
                     '</div>'
                 );
             }).join("") + '</div>';
+        })();
+
+        // "New result from Expert" banner — same pending list that badges
+        // the "Analysis Result" sidebar link (Shell.getPendingSoReviewRecords()).
+        // Clicking through opens that specific record directly; opening it
+        // is what clears both this banner and the sidebar badge for it
+        // (see analysis-result-view.js's render()).
+        (function renderSoNotificationBanner() {
+            var banner = document.getElementById("soNotificationBanner");
+            if (!banner || !window.Shell) return;
+
+            var pending = Shell.getPendingSoReviewRecords();
+            if (!pending.length) return;
+
+            var newest = pending[0];
+            var title = newest.analysisTitle || newest.title || "Untitled Analysis";
+
+            var subText =
+                pending.length > 1
+                    ? `ล่าสุด: "${title}" และอีก ${pending.length - 1} รายการ — พร้อมให้ตรวจสอบและกรอก Safety Mitigation`
+                    : `"${title}" พร้อมให้ตรวจสอบและกรอก Safety Mitigation, Risk Owner, Type of Hazard`;
+
+            banner.innerHTML =
+                '<div class="ui-notify-banner">' +
+                '<div class="ui-notify-banner-icon">' + Icon("bell", "", 18) + '</div>' +
+                '<div class="ui-notify-banner-body">' +
+                '<div class="ui-notify-banner-title">มีผลการวิเคราะห์ใหม่จาก Expert ' + pending.length + ' รายการ</div>' +
+                '<div class="ui-notify-banner-sub">' + subText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div>' +
+                '</div>' +
+                '<a href="analysis-result-view.html?id=' + encodeURIComponent(newest.id || "") + '" class="ui-btn ui-btn-primary ui-btn-sm">ดูผลการวิเคราะห์ →</a>' +
+                '</div>';
         })();
     </script>
 

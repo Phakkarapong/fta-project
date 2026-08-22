@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>Analysis Result - JorproA</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
@@ -16,23 +17,28 @@
          markup renders in the new visual system without a full rewrite. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // darkMode: 'class' + the *Dark color set below is driven by the
+        // same `dark` class on <html> that theme-toggle.js already toggles
+        // for theme.css's [data-theme] branch (see ThemeToggle.apply in
+        // theme-toggle.js) — both systems flip together from one click.
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
                         jorpro: {
-                            ink: '#0F172A',
-                            slate: '#475569',
-                            mute: '#94A3B8',
-                            canvas: '#F8FAFC',
-                            surface: '#FFFFFF',
-                            line: '#E2E8F0',
-                            blue: '#4F46E5',
-                            blueMid: '#4338CA',
-                            blueBright: '#6366F1',
-                            red: '#E11D48',
-                            redDim: '#FFF1F2',
-                            redLight: '#FDA4AF',
+                            ink: '#0F172A', inkDark: '#F1F5F9',
+                            slate: '#475569', slateDark: '#CBD5E1',
+                            mute: '#94A3B8', muteDark: '#64748B',
+                            canvas: '#F8FAFC', canvasDark: '#0B1220',
+                            surface: '#FFFFFF', surfaceDark: '#131B2C',
+                            line: '#E2E8F0', lineDark: '#293548',
+                            blue: '#4F46E5', blueDark: '#818CF8',
+                            blueMid: '#4338CA', blueMidDark: '#A5B4FC',
+                            blueBright: '#6366F1', blueBrightDark: '#818CF8',
+                            red: '#E11D48', redDark: '#FB7185',
+                            redDim: '#FFF1F2', redDimDark: 'rgba(251,113,133,0.14)',
+                            redLight: '#FDA4AF', redLightDark: '#FB7185',
                         }
                     },
                     fontFamily: {
@@ -45,6 +51,7 @@
         }
     </script>
 
+    <script src="../theme-boot.js"></script>
     <link rel="stylesheet" href="../theme.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -61,19 +68,19 @@
                 <div class="workspace result-page" style="max-width:960px;margin:0 auto;">
 
                     <!-- PAGE TITLE -->
-                    <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm" style="margin-bottom:20px;">
-                        <span class="text-xs font-bold tracking-widest text-jorpro-blue uppercase block mb-1">
+                    <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 md:p-8 shadow-sm" style="margin-bottom:20px;">
+                        <span class="text-xs font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark uppercase block mb-1">
                             FINAL SAFETY REPORT
                         </span>
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink flex flex-wrap items-baseline gap-2 md:gap-3">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink dark:text-jorpro-inkDark flex flex-wrap items-baseline gap-2 md:gap-3">
                             Analysis Result
-                            <span class="text-sm md:text-base font-normal text-jorpro-mute">
+                            <span class="text-sm md:text-base font-normal text-jorpro-mute dark:text-jorpro-muteDark">
                                 ผลการวิเคราะห์
                             </span>
                         </h2>
-                        <p class="text-xs md:text-sm text-jorpro-mute mt-1">
+                        <p class="text-xs md:text-sm text-jorpro-mute dark:text-jorpro-muteDark mt-1">
                             Final summary of FTA and FAA Risk Assessment.
-                            <span class="block sm:inline text-jorpro-mute">
+                            <span class="block sm:inline text-jorpro-mute dark:text-jorpro-muteDark">
                                 สรุปผลการวิเคราะห์ FTA และการประเมินความเสี่ยงตาม FAA
                             </span>
                         </p>
@@ -84,152 +91,95 @@
                     <main class="result-content" style="display:flex;flex-direction:column;gap:20px;">
 
                         <!-- ANALYSIS INFORMATION -->
-                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
-                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                                <div class="w-10 h-10 rounded-xl bg-jorpro-canvas border border-jorpro-line flex items-center justify-center font-bold text-jorpro-blue shrink-0">
+                        <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 shadow-sm">
+                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line dark:border-jorpro-lineDark">
+                                <div class="w-10 h-10 rounded-xl bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark flex items-center justify-center font-bold text-jorpro-blue dark:text-jorpro-blueDark shrink-0">
                                     i
                                 </div>
                                 <div>
-                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute dark:text-jorpro-muteDark uppercase block">
                                         ANALYSIS PROFILE
                                     </span>
-                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
+                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink dark:text-jorpro-inkDark">
                                         Analysis Information
                                     </h3>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Analysis Title</span>
-                                    <strong id="analysisTitle" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute dark:text-jorpro-muteDark">Analysis Title</span>
+                                    <strong id="analysisTitle" class="text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark break-words">-</strong>
                                 </div>
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Top Event</span>
-                                    <strong id="topEvent" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute dark:text-jorpro-muteDark">Top Event</span>
+                                    <strong id="topEvent" class="text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark break-words">-</strong>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Department / Area</span>
-                                    <strong id="department" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute dark:text-jorpro-muteDark">Department / Area</span>
+                                    <strong id="department" class="text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark break-words">-</strong>
                                 </div>
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Analysis Date &amp; Time</span>
-                                    <strong id="analysisDate" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
+                                <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute dark:text-jorpro-muteDark">Analysis Date &amp; Time</span>
+                                    <strong id="analysisDate" class="text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark break-words">-</strong>
                                 </div>
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Submitted Date &amp; Time</span>
-                                    <strong id="submittedAt" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                                </div>
-                            </div>
-
-                            <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4">
-                                <span class="text-xs text-jorpro-mute block mb-1">Description</span>
-                                <p id="description" class="text-xs md:text-sm text-jorpro-slate leading-relaxed">-</p>
-                            </div>
-                        </div>
-
-
-                        <!-- FTA RESULT -->
-                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
-                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                                <div class="w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue shrink-0">
-                                    %
-                                </div>
-                                <div>
-                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                                        FAULT TREE ANALYSIS
-                                    </span>
-                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink flex flex-wrap items-baseline gap-2">
-                                        FTA Analysis Result
-                                        <span class="text-xs font-normal text-jorpro-mute">
-                                            ผลการวิเคราะห์ Fault Tree
-                                        </span>
-                                    </h3>
+                                <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4 flex flex-col gap-1">
+                                    <span class="text-xs text-jorpro-mute dark:text-jorpro-muteDark">Submitted Date &amp; Time</span>
+                                    <strong id="submittedAt" class="text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark break-words">-</strong>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Main Gate</span>
-                                    <strong id="mainGate" class="text-sm font-semibold text-jorpro-ink break-words">-</strong>
-                                </div>
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Top Event Probability</span>
-                                    <strong id="ftaProbability" class="text-base font-bold text-jorpro-blue break-words">-</strong>
-                                </div>
-                                <div class="bg-jorpro-canvas border border-jorpro-line rounded-xl p-4 flex flex-col gap-1">
-                                    <span class="text-xs text-jorpro-mute">Probability (%)</span>
-                                    <strong id="ftaPercentage" class="text-base font-bold text-jorpro-blue break-words">-</strong>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <!-- BASIC EVENT RESULTS -->
-                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
-                            <div class="flex items-center gap-4 mb-6 pb-4 border-b border-jorpro-line">
-                                <div class="w-10 h-10 rounded-xl bg-jorpro-blue/10 border border-jorpro-blue/25 flex items-center justify-center font-bold text-jorpro-blue shrink-0">
-                                    E
-                                </div>
-                                <div>
-                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
-                                        BASIC EVENTS
-                                    </span>
-                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
-                                        Basic Event Probability Results
-                                    </h3>
-                                </div>
-                            </div>
-                            <div id="basicEventResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                <div class="text-xs text-jorpro-mute">-</div>
+                            <div class="bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark rounded-xl p-4">
+                                <span class="text-xs text-jorpro-mute dark:text-jorpro-muteDark block mb-1">Description</span>
+                                <p id="description" class="text-xs md:text-sm text-jorpro-slate dark:text-jorpro-slateDark leading-relaxed">-</p>
                             </div>
                         </div>
 
 
                         <!-- FAA RISK ASSESSMENT -->
-                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
+                        <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line dark:border-jorpro-lineDark">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center font-bold text-amber-600 shrink-0">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center font-bold text-amber-600 dark:text-amber-400 shrink-0">
                                         ⚠
                                     </div>
                                     <div>
-                                        <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                        <span class="text-[10px] font-bold tracking-widest text-jorpro-mute dark:text-jorpro-muteDark uppercase block">
                                             FAA RISK ASSESSMENT
                                         </span>
-                                        <h3 class="text-base md:text-lg font-bold text-jorpro-ink">
+                                        <h3 class="text-base md:text-lg font-bold text-jorpro-ink dark:text-jorpro-inkDark">
                                             Risk Assessment Result
                                         </h3>
-                                        <span class="text-xs font-normal text-jorpro-mute">
+                                        <span class="text-xs font-normal text-jorpro-mute dark:text-jorpro-muteDark">
                                             ผลการประเมินความเสี่ยงทุก Event
                                         </span>
                                     </div>
                                 </div>
 
                                 <div id="riskCompletionBadge"
-                                     class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-xs font-bold text-jorpro-slate">
+                                     class="px-3 py-2 rounded-xl bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark text-xs font-bold text-jorpro-slate dark:text-jorpro-slateDark">
                                     0 / 0 EVENTS
                                 </div>
                             </div>
 
                             <!-- OVERALL RISK -->
                             <div id="overallRiskSummary"
-                                 class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-4 mb-5">
+                                 class="rounded-xl border border-jorpro-line dark:border-jorpro-lineDark bg-jorpro-canvas dark:bg-jorpro-canvasDark p-4 mb-5">
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                                        <span class="text-[11px] text-jorpro-mute block">Highest Risk</span>
-                                        <strong id="highestRiskLevel" class="text-lg font-black text-jorpro-ink block mt-1">-</strong>
+                                    <div class="rounded-xl border border-jorpro-line dark:border-jorpro-lineDark bg-white dark:bg-jorpro-surfaceDark p-4">
+                                        <span class="text-[11px] text-jorpro-mute dark:text-jorpro-muteDark block">Highest Risk</span>
+                                        <strong id="highestRiskLevel" class="text-lg font-black text-jorpro-ink dark:text-jorpro-inkDark block mt-1">-</strong>
                                     </div>
-                                    <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                                        <span class="text-[11px] text-jorpro-mute block">Events Needing SO Review</span>
-                                        <strong id="mitigationEventCount" class="text-lg font-black text-amber-600 block mt-1">0</strong>
+                                    <div class="rounded-xl border border-jorpro-line dark:border-jorpro-lineDark bg-white dark:bg-jorpro-surfaceDark p-4">
+                                        <span class="text-[11px] text-jorpro-mute dark:text-jorpro-muteDark block">Events Needing SO Review</span>
+                                        <strong id="mitigationEventCount" class="text-lg font-black text-amber-600 dark:text-amber-400 block mt-1">0</strong>
                                     </div>
-                                    <div class="rounded-xl border border-jorpro-line bg-white p-4">
-                                        <span class="text-[11px] text-jorpro-mute block">Overall Initial Risk</span>
-                                        <strong id="overallAcceptability" class="text-lg font-black text-jorpro-ink block mt-1">-</strong>
+                                    <div class="rounded-xl border border-jorpro-line dark:border-jorpro-lineDark bg-white dark:bg-jorpro-surfaceDark p-4">
+                                        <span class="text-[11px] text-jorpro-mute dark:text-jorpro-muteDark block">Overall Initial Risk</span>
+                                        <strong id="overallAcceptability" class="text-lg font-black text-jorpro-ink dark:text-jorpro-inkDark block mt-1">-</strong>
                                     </div>
                                 </div>
                             </div>
@@ -239,12 +189,13 @@
                                 <table class="data-table">
                                     <thead>
                                         <tr>
+                                            <th>Rank</th>
                                             <th>Event</th>
                                             <th>Likelihood</th>
                                             <th>Severity</th>
                                             <th>Risk Index</th>
                                             <th>Initial Risk Level</th>
-                                            <th>Safety Officer Scoring</th>
+                                            <th>Safety Officer Review</th>
                                         </tr>
                                     </thead>
                                     <tbody id="riskAssessmentTableBody"></tbody>
@@ -252,8 +203,8 @@
                             </div>
 
                             <!-- PENDING / STATUS -->
-                            <div id="riskPendingPanel" class="hidden mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                                <div class="text-xs font-bold tracking-widest text-amber-600 uppercase">
+                            <div id="riskPendingPanel" class="hidden mt-4 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4">
+                                <div class="text-xs font-bold tracking-widest text-amber-600 dark:text-amber-400 uppercase">
                                     EVENTS STILL REQUIRING ASSESSMENT
                                 </div>
                                 <div id="riskPendingList" class="mt-3" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -262,21 +213,21 @@
 
 
                         <!-- SAFETY CONTROLS BY EVENT -->
-                        <div class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
-                            <div class="flex items-start justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line">
+                        <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 md:p-8 shadow-sm">
+                            <div class="flex items-start justify-between gap-4 mb-6 pb-4 border-b border-jorpro-line dark:border-jorpro-lineDark">
                                 <div>
-                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute uppercase block">
+                                    <span class="text-[10px] font-bold tracking-widest text-jorpro-mute dark:text-jorpro-muteDark uppercase block">
                                         SAFETY CONTROLS
                                     </span>
-                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink mt-1">
+                                    <h3 class="text-base md:text-lg font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-1">
                                         Mitigation &amp; Risk Ownership
                                     </h3>
-                                    <span class="text-xs text-jorpro-mute block mt-1">
+                                    <span class="text-xs text-jorpro-mute dark:text-jorpro-muteDark block mt-1">
                                         ข้อมูล Existing Risk Control, Safety Mitigation และ Risk Owner ของแต่ละ Event
                                     </span>
                                 </div>
                                 <span id="safetyControlsEventCount"
-                                      class="px-3 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-[10px] font-bold text-jorpro-blue shrink-0">
+                                      class="px-3 py-2 rounded-xl bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark text-[10px] font-bold text-jorpro-blue dark:text-jorpro-blueDark shrink-0">
                                     0 EVENTS
                                 </span>
                             </div>
@@ -285,20 +236,24 @@
 
 
                         <!-- FINAL STATUS CARD -->
-                        <div class="text-center bg-gradient-to-b from-white to-jorpro-canvas border border-jorpro-blue/25 rounded-2xl p-6 md:p-10 shadow-sm" style="display:flex;flex-direction:column;gap:12px;">
-                            <span class="text-xs font-bold tracking-widest text-jorpro-blue uppercase block">
+                        <div class="text-center bg-gradient-to-b from-white dark:from-jorpro-surfaceDark to-jorpro-canvas dark:to-jorpro-canvasDark border border-jorpro-blue/25 dark:border-jorpro-blueDark/30 rounded-2xl p-6 md:p-10 shadow-sm" style="display:flex;flex-direction:column;gap:12px;">
+                            <span class="text-xs font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark uppercase block">
                                 INITIAL RISK STATUS
                             </span>
-                            <h3 class="text-lg md:text-xl font-bold text-jorpro-ink flex flex-wrap items-center justify-center gap-2">
+                            <h3 class="text-lg md:text-xl font-bold text-jorpro-ink dark:text-jorpro-inkDark flex flex-wrap items-center justify-center gap-2">
                                 Initial Risk Status
-                                <span class="text-xs md:text-sm font-normal text-jorpro-mute">
+                                <span class="text-xs md:text-sm font-normal text-jorpro-mute dark:text-jorpro-muteDark">
                                     สถานะความเสี่ยงเบื้องต้น (รอ Safety Officer ให้คะแนนขั้นสุดท้าย)
                                 </span>
                             </h3>
-                            <div id="finalStatus" class="inline-block text-lg md:text-xl font-bold px-6 py-2.5 rounded-full bg-jorpro-blue/10 border border-jorpro-blue text-jorpro-blueBright tracking-wider my-2" style="align-self:center;">
+                            <!-- No static text color here on purpose — analysis-result.js's
+                                 renderFinalStatus() always sets one of the theme.css
+                                 .text-risk-* classes (which must win over any Tailwind
+                                 text-color utility regardless of stylesheet order). -->
+                            <div id="finalStatus" class="inline-block text-lg md:text-xl font-bold px-6 py-2.5 rounded-full bg-jorpro-blue/10 dark:bg-jorpro-blueDark/10 border border-jorpro-blue dark:border-jorpro-blueDark tracking-wider my-2" style="align-self:center;">
                                 -
                             </div>
-                            <p id="finalMessage" class="text-xs md:text-sm text-jorpro-mute max-w-xl mx-auto leading-relaxed">-</p>
+                            <p id="finalMessage" class="text-xs md:text-sm text-jorpro-mute dark:text-jorpro-muteDark max-w-xl mx-auto leading-relaxed">-</p>
                         </div>
 
                     </main>
@@ -319,6 +274,8 @@
 
     <script src="../icons.js"></script>
     <script src="../notify.js"></script>
+    <script src="../theme-toggle.js"></script>
+    <script src="../risk-matrix.js"></script>
     <script src="../shell.js"></script>
     <script>Shell.mount({ role: "expert", active: "result", title: "Analysis Result" });</script>
 

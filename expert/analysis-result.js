@@ -296,248 +296,11 @@ function setText(
 }
 
 
-function renderBasicEvents() {
-
-    const container =
-        document.getElementById(
-            "basicEventResults"
-        );
-
-    if (!container) {
-        return;
-    }
-
-    const events =
-        analysis?.ftaData
-            ?.basicEvents || [];
-
-    const canonicalProbabilities =
-        analysis?.analysisResult
-            ?.basicEventProbabilities ||
-        {};
-
-    const legacyResult =
-        readLegacyFTAResult();
-
-    const probabilities =
-        canonicalProbabilities &&
-        Object.keys(
-            canonicalProbabilities
-        ).length
-            ? canonicalProbabilities
-            : (
-                legacyResult.result
-                    ?.basicEventProbabilities ||
-                {}
-            );
-
-    container.innerHTML = "";
-
-    if (!events.length) {
-
-        container.innerHTML =
-            `<div class="text-xs text-jorpro-mute">
-                No Basic Events
-             </div>`;
-
-        return;
-
-    }
-
-    events.forEach(
-        function(event, index) {
-
-            const eventId =
-                String(
-                    event?.id ||
-                    `E-${String(index + 1).padStart(2, "0")}`
-                );
-
-            const probability =
-                probabilities[eventId];
-
-            const percentage =
-                Number.isFinite(
-                    Number(probability)
-                )
-                    ? (
-                        Number(probability) * 100
-                    ).toFixed(4) + "%"
-                    : "-";
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-            card.className =
-                "bg-jorpro-canvas border border-jorpro-line rounded-xl p-4";
-
-            card.innerHTML = `
-                <div class="text-[10px] font-bold tracking-widest text-jorpro-blue">
-                    ${escapeHtml(eventId)}
-                </div>
-
-                <div class="text-sm font-semibold text-jorpro-ink mt-2 break-words">
-                    ${escapeHtml(
-                        event?.name ||
-                        `Basic Event ${index + 1}`
-                    )}
-                </div>
-
-                <div class="text-xs text-jorpro-mute mt-2">
-                    Probability
-                </div>
-
-                <div class="text-base font-bold text-jorpro-blue">
-                    ${escapeHtml(percentage)}
-                </div>
-            `;
-
-            container.appendChild(
-                card
-            );
-
-        }
-    );
-
-}
-
-
-
-function readLegacyFTAResult() {
-
-    const legacyResult =
-        readJSON(
-            localStorage,
-            "ftaAnalysisResult"
-        );
-
-    let legacyProbability = null;
-
-    const rawProbability =
-        localStorage.getItem(
-            "ftaTopProbability"
-        );
-
-    if (
-        rawProbability !== null &&
-        rawProbability !== ""
-    ) {
-
-        const parsed =
-            Number(
-                rawProbability
-            );
-
-        if (Number.isFinite(parsed)) {
-            legacyProbability = parsed;
-        }
-
-    }
-
-    return {
-
-        result:
-            legacyResult,
-
-        probability:
-            legacyProbability
-
-    };
-
-}
-
-function renderFTA() {
-
-    const canonicalResult =
-        analysis?.analysisResult ||
-        null;
-
-    const legacy =
-        readLegacyFTAResult();
-
-
-    const result =
-        canonicalResult ||
-        legacy.result ||
-        null;
-
-
-    let probability =
-        Number(
-            result?.topEventProbability
-        );
-
-
-    if (
-        !Number.isFinite(
-            probability
-        )
-        &&
-        Number.isFinite(
-            Number(
-                legacy.probability
-            )
-        )
-    ) {
-
-        probability =
-            Number(
-                legacy.probability
-            );
-
-    }
-
-
-    const gate =
-        result?.gate ||
-        result?.mainGate ||
-        analysis?.ftaData?.gate ||
-        "OR";
-
-
-    setText(
-        "mainGate",
-        gate
-    );
-
-
-    if (
-        Number.isFinite(
-            probability
-        )
-    ) {
-
-        setText(
-            "ftaProbability",
-            probability.toFixed(8)
-        );
-
-
-        setText(
-            "ftaPercentage",
-            (
-                probability * 100
-            ).toFixed(4) + "%"
-        );
-
-    } else {
-
-        setText(
-            "ftaProbability",
-            "-"
-        );
-
-
-        setText(
-            "ftaPercentage",
-            "-"
-        );
-
-    }
-
-}
+// renderBasicEvents() (per-Basic-Event Probability card grid),
+// readLegacyFTAResult() (its only other caller was renderFTA(), removed
+// earlier) and renderFTA() (Main Gate / Top Event Probability /
+// Probability % card) have all been removed — FTA probability display
+// is no longer part of this page.
 
 
 
@@ -577,7 +340,7 @@ function renderSafetyControlsByEvent() {
 
         container.innerHTML =
             `
-            <div class="rounded-xl border border-jorpro-line bg-jorpro-canvas p-5 text-sm text-jorpro-mute">
+            <div class="rounded-xl border border-jorpro-line dark:border-jorpro-lineDark bg-jorpro-canvas dark:bg-jorpro-canvasDark p-5 text-sm text-jorpro-mute dark:text-jorpro-muteDark">
                 No Basic Event Safety Control data found.
             </div>
             `;
@@ -605,16 +368,10 @@ function renderSafetyControlsByEvent() {
                 event?.existing_risk_control ||
                 "-";
 
-            const safetyMitigation =
-                event?.safetyMitigation ||
-                event?.safetyOfficerMitigation ||
-                event?.safety_mitigation ||
-                "-";
-
-            const riskOwner =
-                event?.riskOwner ||
-                event?.risk_owner ||
-                "-";
+            // Safety Mitigation / Risk Owner / Type of Hazard are no longer
+            // shown here — Safety Officer enters them after this Risk
+            // Assessment is complete, on the Safety Officer Analysis Result
+            // page, not before it.
 
             const card =
                 document.createElement(
@@ -622,17 +379,17 @@ function renderSafetyControlsByEvent() {
                 );
 
             card.className =
-                "rounded-xl border border-jorpro-line bg-jorpro-canvas p-4";
+                "rounded-xl border border-jorpro-line dark:border-jorpro-lineDark bg-jorpro-canvas dark:bg-jorpro-canvasDark p-4";
 
             card.innerHTML = `
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
 
                     <div>
-                        <div class="text-[10px] font-bold tracking-widest text-jorpro-blue">
+                        <div class="text-[10px] font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark">
                             ${escapeHtml(eventId)}
                         </div>
 
-                        <div class="text-sm font-bold text-jorpro-ink mt-1 break-words">
+                        <div class="text-sm font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-1 break-words">
                             ${escapeHtml(
                                 event?.name ||
                                 event?.eventName ||
@@ -641,46 +398,22 @@ function renderSafetyControlsByEvent() {
                         </div>
                     </div>
 
-                    <span class="text-[9px] font-bold tracking-widest uppercase text-jorpro-blue">
+                    <span class="text-[9px] font-bold tracking-widest uppercase text-jorpro-blue dark:text-jorpro-blueDark">
                         SAFETY OFFICER SOURCE
                     </span>
 
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 gap-3">
 
-                    <div class="rounded-lg border border-jorpro-line bg-white p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-mute uppercase">
+                    <div class="rounded-lg border border-jorpro-line dark:border-jorpro-lineDark bg-white dark:bg-jorpro-surfaceDark p-3">
+                        <div class="text-[9px] font-bold tracking-widest text-jorpro-mute dark:text-jorpro-muteDark uppercase">
                             Existing Risk Control (Identify)
                         </div>
 
-                        <div class="text-xs text-jorpro-slate mt-2 whitespace-pre-line break-words">
+                        <div class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-2 whitespace-pre-line break-words">
                             ${escapeHtml(
                                 existingRiskControl
-                            )}
-                        </div>
-                    </div>
-
-                    <div class="rounded-lg border border-jorpro-blue/20 bg-jorpro-blue/5 p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-blue uppercase">
-                            Safety Mitigation (Identify)
-                        </div>
-
-                        <div class="text-xs text-jorpro-slate mt-2 whitespace-pre-line break-words">
-                            ${escapeHtml(
-                                safetyMitigation
-                            )}
-                        </div>
-                    </div>
-
-                    <div class="rounded-lg border border-jorpro-line bg-white p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-mute uppercase">
-                            Risk Owner
-                        </div>
-
-                        <div class="text-xs text-jorpro-slate mt-2 break-words">
-                            ${escapeHtml(
-                                riskOwner
                             )}
                         </div>
                     </div>
@@ -801,16 +534,32 @@ function renderRiskAssessments() {
 
         tableBody.innerHTML = "";
 
+        // Ranked HIGH -> MEDIUM -> LOW via RiskMatrix.compareByRisk —
+        // events with no saved assessment yet have no risk to rank by,
+        // so they sort after all assessed ones, in their original order.
+        const decorated =
+            targets.map(function(target) {
+                return {
+                    target: target,
+                    item: savedMap.get(String(target.id)) || null
+                };
+            });
 
-        targets.forEach(
-            function(target) {
+        decorated.sort(function(a, b) {
+            if (a.item && b.item) {
+                return window.RiskMatrix ? RiskMatrix.compareByRisk(a.item, b.item) : 0;
+            }
+            if (a.item && !b.item) return -1;
+            if (!a.item && b.item) return 1;
+            return 0;
+        });
 
-                const item =
-                    savedMap.get(
-                        String(
-                            target.id
-                        )
-                    );
+        decorated.forEach(
+            function(entry, index) {
+
+                const target = entry.target;
+                const item = entry.item;
+                const rank = String(index + 1).padStart(2, "0");
 
 
                 const row =
@@ -822,54 +571,55 @@ function renderRiskAssessments() {
                 if (!item) {
 
                     row.className =
-                        "bg-amber-50";
+                        "bg-amber-50 dark:bg-amber-500/10";
 
                     row.innerHTML = `
-                        <td class="px-4 py-3 text-sm text-jorpro-ink">
+                        <td class="px-4 py-3 text-xs text-jorpro-mute dark:text-jorpro-muteDark">${rank}</td>
+                        <td class="px-4 py-3 text-sm text-jorpro-ink dark:text-jorpro-inkDark">
                             ${escapeHtml(target.name)}
                         </td>
                         <td colspan="5"
-                            class="px-4 py-3 text-xs text-amber-600 font-bold">
+                            class="px-4 py-3 text-xs text-amber-600 dark:text-amber-400 font-bold">
                             PENDING — No Risk Assessment Saved
                         </td>
-                        <td class="px-4 py-3 text-xs text-jorpro-mute">
+                        <td class="px-4 py-3 text-xs text-jorpro-mute dark:text-jorpro-muteDark">
                             -
                         </td>
                     `;
 
                 } else {
 
+                    // Via RiskMatrix so HIGH/MEDIUM/LOW render red/amber/green
+                    // consistently with every other page (this used to be an
+                    // ad-hoc orange/pale-yellow/emerald/red mix).
                     const riskClass =
-                        item.riskLevel === "HIGH"
-                            ? "text-orange-600"
-                            : item.riskLevel === "MEDIUM"
-                                ? "text-yellow-300"
-                                : item.riskLevel === "LOW"
-                                    ? "text-emerald-600"
-                                    : "text-jorpro-red";
+                        window.RiskMatrix
+                            ? RiskMatrix.getRiskLevelTextClass(item.riskLevel)
+                            : "text-jorpro-slate dark:text-jorpro-slateDark";
 
 
                     row.innerHTML = `
-                        <td class="px-4 py-3 text-sm font-semibold text-jorpro-ink">
+                        <td class="px-4 py-3 text-xs text-jorpro-mute dark:text-jorpro-muteDark">${rank}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark">
                             ${escapeHtml(
                                 item.eventName ||
                                 target.name
                             )}
                         </td>
 
-                        <td class="px-4 py-3 text-xs text-jorpro-slate">
+                        <td class="px-4 py-3 text-xs text-jorpro-slate dark:text-jorpro-slateDark">
                             ${escapeHtml(
                                 `${item.likelihood ?? "-"} - ${item.likelihoodName || ""}`
                             )}
                         </td>
 
-                        <td class="px-4 py-3 text-xs text-jorpro-slate">
+                        <td class="px-4 py-3 text-xs text-jorpro-slate dark:text-jorpro-slateDark">
                             ${escapeHtml(
                                 `${item.severity ?? "-"} - ${item.severityName || ""}`
                             )}
                         </td>
 
-                        <td class="px-4 py-3 text-sm font-bold text-jorpro-blue">
+                        <td class="px-4 py-3 text-sm font-bold text-jorpro-blue dark:text-jorpro-blueDark">
                             ${escapeHtml(
                                 item.riskIndex ??
                                 item.riskScore ??
@@ -886,9 +636,9 @@ function renderRiskAssessments() {
                         </td>
 
                         <td class="px-4 py-3 text-xs">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-jorpro-blue/10 border border-jorpro-blue/20 text-jorpro-blueBright font-bold">
-                                <span class="w-1.5 h-1.5 rounded-full bg-jorpro-blueBright"></span>
-                                PENDING SO SCORING
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-jorpro-blue/10 dark:bg-jorpro-blueDark/10 border border-jorpro-blue/20 dark:border-jorpro-blueDark/30 text-jorpro-blueBright dark:text-jorpro-blueBrightDark font-bold">
+                                <span class="w-1.5 h-1.5 rounded-full bg-jorpro-blueBright dark:bg-jorpro-blueBrightDark"></span>
+                                PENDING REVIEW
                             </span>
                         </td>
                     `;
@@ -942,20 +692,20 @@ function renderRiskAssessments() {
                         );
 
                     item.className =
-                        "flex items-center gap-3 rounded-lg border border-amber-200 bg-jorpro-canvas px-3 py-2";
+                        "flex items-center gap-3 rounded-lg border border-amber-200 dark:border-amber-500/30 bg-jorpro-canvas dark:bg-jorpro-canvasDark px-3 py-2";
 
                     item.innerHTML = `
-                        <span class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center text-[11px] font-bold">
+                        <span class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[11px] font-bold">
                             ${String(index + 1).padStart(2, "0")}
                         </span>
 
-                        <div class="text-sm text-jorpro-slate">
+                        <div class="text-sm text-jorpro-slate dark:text-jorpro-slateDark">
                             ${escapeHtml(
                                 target.name
                             )}
                         </div>
 
-                        <span class="ml-auto text-[10px] font-bold tracking-wider text-amber-600">
+                        <span class="ml-auto text-[10px] font-bold tracking-wider text-amber-600 dark:text-amber-400">
                             PENDING
                         </span>
                     `;
@@ -1096,11 +846,11 @@ function renderRiskAssessments() {
             (
                 overall ===
                 "LOW RISK"
-                    ? "text-emerald-600"
+                    ? "text-emerald-600 dark:text-emerald-400"
                     : overall ===
                         "HIGH RISK"
-                        ? "text-jorpro-red"
-                        : "text-amber-600"
+                        ? "text-jorpro-red dark:text-jorpro-redDark"
+                        : "text-amber-600 dark:text-amber-400"
             );
 
     }
@@ -1181,16 +931,34 @@ function renderFinalStatus() {
         );
 
 
+    // theme.css's .text-risk-* utilities (var(--low/--medium/--high))
+    // stand in for the old inline style="color:#hex", which was baked
+    // to a fixed light-mode hex and stayed that color even in dark
+    // mode. Clear whichever one is currently set before applying the
+    // new one — this function re-runs on every render, and classes
+    // (unlike a plain assignment to .style.color) accumulate instead
+    // of overwriting each other.
+    // "text-risk-special" (red) is what a HIGH result maps to via
+    // RiskMatrix.getRiskLevelTextClass — used directly here (not
+    // "text-risk-high", which theme.css defines as orange) so HIGH
+    // renders the same red everywhere on the site, not just here.
+    finalStatus.classList.remove(
+        "text-risk-special",
+        "text-risk-medium",
+        "text-risk-low"
+    );
+
     if (complete && hasHigh) {
 
         finalStatus.textContent =
             "HIGH INITIAL RISK";
 
-        finalStatus.style.color =
-            "#f87171";
+        finalStatus.classList.add(
+            "text-risk-special"
+        );
 
         finalMessage.textContent =
-            "One or more Events have a High Initial Risk. Awaiting Safety Officer scoring (Acceptability, Mitigation, Next Review) on the Safety Officer Analysis Result page.";
+            "One or more Events have a High Initial Risk. Awaiting Safety Officer review (Safety Mitigation, Risk Owner, Type of Hazard) on the Safety Officer Analysis Result page.";
 
     }
     else if (complete && hasMedium) {
@@ -1198,11 +966,12 @@ function renderFinalStatus() {
         finalStatus.textContent =
             "MEDIUM INITIAL RISK";
 
-        finalStatus.style.color =
-            "#fbbf24";
+        finalStatus.classList.add(
+            "text-risk-medium"
+        );
 
         finalMessage.textContent =
-            "All Events have been scored. Awaiting Safety Officer final scoring on the Safety Officer Analysis Result page.";
+            "All Events have been scored. Awaiting Safety Officer review on the Safety Officer Analysis Result page.";
 
     }
     else if (complete) {
@@ -1210,8 +979,9 @@ function renderFinalStatus() {
         finalStatus.textContent =
             "LOW INITIAL RISK";
 
-        finalStatus.style.color =
-            "#4ade80";
+        finalStatus.classList.add(
+            "text-risk-low"
+        );
 
         finalMessage.textContent =
             "All Events have been scored with Low Initial Risk. Awaiting Safety Officer final confirmation.";
@@ -1222,8 +992,9 @@ function renderFinalStatus() {
         finalStatus.textContent =
             "IN PROGRESS";
 
-        finalStatus.style.color =
-            "#fbbf24";
+        finalStatus.classList.add(
+            "text-risk-medium"
+        );
 
         finalMessage.textContent =
             `Initial Risk scored for ${assessments.length} of ${targets.length} Events.`;
@@ -1285,10 +1056,6 @@ function renderPage() {
         )
     );
 
-
-    renderBasicEvents();
-
-    renderFTA();
 
     renderSafetyControlsByEvent();
     renderRiskAssessments();

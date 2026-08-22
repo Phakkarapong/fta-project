@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>FTA Review - Safety Officer</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
@@ -15,15 +16,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
     <script>
+        // darkMode: 'class' + the *Dark color set below is driven by the
+        // same `dark` class on <html> that theme-toggle.js already toggles
+        // for theme.css's [data-theme] branch (see ThemeToggle.apply in
+        // theme-toggle.js) — both systems flip together from one click.
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
                         jorpro: {
-                            ink: '#0F172A', slate: '#475569', mute: '#94A3B8',
-                            canvas: '#F8FAFC', surface: '#FFFFFF', line: '#E2E8F0',
-                            blue: '#4F46E5', blueMid: '#4338CA', blueBright: '#6366F1',
-                            red: '#E11D48', redDim: '#FFF1F2', redLight: '#FDA4AF',
+                            ink: '#0F172A', inkDark: '#F1F5F9',
+                            slate: '#475569', slateDark: '#CBD5E1',
+                            mute: '#94A3B8', muteDark: '#64748B',
+                            canvas: '#F8FAFC', canvasDark: '#0B1220',
+                            surface: '#FFFFFF', surfaceDark: '#131B2C',
+                            line: '#E2E8F0', lineDark: '#293548',
+                            blue: '#4F46E5', blueDark: '#818CF8',
+                            blueMid: '#4338CA', blueMidDark: '#A5B4FC',
+                            blueBright: '#6366F1', blueBrightDark: '#818CF8',
+                            red: '#E11D48', redDark: '#FB7185',
+                            redDim: '#FFF1F2', redDimDark: 'rgba(251,113,133,0.14)',
+                            redLight: '#FDA4AF', redLightDark: '#FB7185',
                         }
                     },
                     fontFamily: {
@@ -36,6 +50,7 @@
         }
     </script>
 
+    <script src="../theme-boot.js"></script>
     <link rel="stylesheet" href="../theme.css">
 </head>
 
@@ -60,69 +75,69 @@
 
     <div style="display:flex;flex-direction:column;gap:18px;">
 
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
-            <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">STEP 3 · FTA REVIEW</span>
+        <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 md:p-8 shadow-sm">
+            <span class="text-[10px] font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark uppercase">STEP 3 · FTA REVIEW</span>
             <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink mt-1">Review FTA Data</h2>
-                    <p class="text-sm text-jorpro-mute mt-2">ตรวจสอบความครบถ้วนของข้อมูลก่อนส่งให้ Expert</p>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink dark:text-jorpro-inkDark mt-1">Review FTA Data</h2>
+                    <p class="text-sm text-jorpro-mute dark:text-jorpro-muteDark mt-2">ตรวจสอบความครบถ้วนของข้อมูลก่อนส่งให้ Expert</p>
                 </div>
                 <div id="statusBadge" class="status-badge status-badge-amber">DRAFT</div>
             </div>
         </section>
 
         <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute">Analysis Title</span>
-                <div id="analysisTitle" class="text-base font-bold text-jorpro-ink mt-2 break-words">-</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute dark:text-jorpro-muteDark">Analysis Title</span>
+                <div id="analysisTitle" class="text-base font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-2 break-words">-</div>
             </div>
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute">Top Event</span>
-                <div id="topEvent" class="text-base font-bold text-jorpro-blueBright mt-2 break-words">-</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute dark:text-jorpro-muteDark">Top Event</span>
+                <div id="topEvent" class="text-base font-bold text-jorpro-blueBright dark:text-jorpro-blueBrightDark mt-2 break-words">-</div>
             </div>
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute">Department / Area</span>
-                <div id="department" class="text-sm text-jorpro-slate mt-2">-</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute dark:text-jorpro-muteDark">Department / Area</span>
+                <div id="department" class="text-sm text-jorpro-slate dark:text-jorpro-slateDark mt-2">-</div>
             </div>
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute">Safety Officer</span>
-                <div id="officerName" class="text-sm text-jorpro-slate mt-2">-</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-wider text-jorpro-mute dark:text-jorpro-muteDark">Safety Officer</span>
+                <div id="officerName" class="text-sm text-jorpro-slate dark:text-jorpro-slateDark mt-2">-</div>
             </div>
         </section>
 
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6">
-            <span class="text-[10px] uppercase tracking-wider text-jorpro-mute">Description / Scope</span>
-            <p id="description" class="text-sm text-jorpro-slate mt-2 leading-relaxed whitespace-pre-wrap">-</p>
+        <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6">
+            <span class="text-[10px] uppercase tracking-wider text-jorpro-mute dark:text-jorpro-muteDark">Description / Scope</span>
+            <p id="description" class="text-sm text-jorpro-slate dark:text-jorpro-slateDark mt-2 leading-relaxed whitespace-pre-wrap">-</p>
         </section>
 
-        <section class="bg-white text-jorpro-slate rounded-2xl p-6 shadow-sm">
+        <section class="bg-white dark:bg-jorpro-surfaceDark text-jorpro-slate dark:text-jorpro-slateDark rounded-2xl p-6 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <span class="text-[10px] uppercase tracking-wider text-jorpro-blue font-bold">FTA STRUCTURE</span>
-                    <h3 class="text-xl font-bold text-jorpro-ink mt-1">Fault Tree Information</h3>
+                    <span class="text-[10px] uppercase tracking-wider text-jorpro-blue dark:text-jorpro-blueDark font-bold">FTA STRUCTURE</span>
+                    <h3 class="text-xl font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-1">Fault Tree Information</h3>
                 </div>
-                <div class="px-4 py-2 rounded-xl bg-jorpro-blue/5 border border-jorpro-line text-xs font-bold text-jorpro-blue">
+                <div class="px-4 py-2 rounded-xl bg-jorpro-blue/5 dark:bg-jorpro-blueDark/10 border border-jorpro-line dark:border-jorpro-lineDark text-xs font-bold text-jorpro-blue dark:text-jorpro-blueDark">
                     GATE: <span id="gate">OR</span>
                 </div>
             </div>
 
-            <div class="mt-5 p-4 rounded-xl bg-jorpro-blue/5 border border-jorpro-line">
-                <span class="text-[10px] font-bold tracking-wider text-jorpro-blue">TOP EVENT</span>
-                <div id="treeTopEvent" class="font-bold text-jorpro-ink mt-1 break-words">-</div>
+            <div class="mt-5 p-4 rounded-xl bg-jorpro-blue/5 dark:bg-jorpro-blueDark/10 border border-jorpro-line dark:border-jorpro-lineDark">
+                <span class="text-[10px] font-bold tracking-wider text-jorpro-blue dark:text-jorpro-blueDark">TOP EVENT</span>
+                <div id="treeTopEvent" class="font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-1 break-words">-</div>
             </div>
 
             <div class="mt-5">
                 <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-bold text-jorpro-slate">Basic Events</h4>
-                    <span id="eventCount" class="text-xs font-bold text-jorpro-blue">0 EVENTS</span>
+                    <h4 class="font-bold text-jorpro-slate dark:text-jorpro-slateDark">Basic Events</h4>
+                    <span id="eventCount" class="text-xs font-bold text-jorpro-blue dark:text-jorpro-blueDark">0 EVENTS</span>
                 </div>
                 <div id="eventList"></div>
             </div>
         </section>
 
-        <section class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-            <b class="text-xs text-amber-600">EXPERT ANALYSIS NOT PERFORMED</b>
-            <p class="text-xs text-jorpro-slate mt-2 leading-relaxed">
+        <section class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-5">
+            <b class="text-xs text-amber-600 dark:text-amber-400">EXPERT ANALYSIS NOT PERFORMED</b>
+            <p class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-2 leading-relaxed">
                 Probability, FTA calculation, Analysis Result, Likelihood, Severity and Risk Assessment
                 จะยังไม่มีในรายการนี้ และจะถูกดำเนินการโดย Expert เท่านั้น
             </p>
@@ -142,6 +157,7 @@
 
     <script src="../icons.js"></script>
     <script src="../notify.js"></script>
+    <script src="../theme-toggle.js"></script>
     <script src="../shell.js"></script>
     <script>Shell.mount({ role: "safety-officer", active: "new", title: "FTA Review" });</script>
 

@@ -4,8 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>JorproA - Aviation Safety FTA</title>
     <link rel="icon" type="image/png" href="logo-icon.png">
+
+    <!-- Must run before theme.css loads, so the correct theme applies
+         on first paint (no flash of the wrong theme). -->
+    <script src="theme-boot.js"></script>
 
     <link rel="stylesheet" href="theme.css">
 
@@ -14,51 +19,730 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- ==========================================================
+         Landing page styles. Everything is prefixed with jp- so it
+         never collides with the rules in theme.css.
+         Day sky in light mode, night sky at altitude in dark mode.
+         ========================================================== -->
+    <style>
+        :root {
+            /* --- day sky --- */
+            --jp-sky-1: #4E8CC4;
+            --jp-sky-2: #8FBEE0;
+            --jp-sky-3: #C8DEEE;
+            --jp-sky-4: #E8F1F7;
+            --jp-haze: rgba(255, 255, 255, .75);
+            --jp-cloud: rgba(255, 255, 255, .85);
+            --jp-clouds-op: 1;
+            --jp-stars-op: 0;
+            --jp-contrail: rgba(255, 255, 255, .8);
+
+            --jp-ink: #0B1723;
+            --jp-muted: #3D5566;
+            --jp-glow: 0 1px 2px rgba(255, 255, 255, .45);
+            --jp-panel: rgba(255, 255, 255, .82);
+            --jp-panel-solid: #FFFFFF;
+            --jp-line: rgba(13, 26, 38, .16);
+            --jp-line-soft: rgba(13, 26, 38, .09);
+            --jp-brand: #1F55AC;
+            --jp-brand-soft: rgba(31, 85, 172, .16);
+            --jp-risk: #E11D48;
+            --jp-risk-soft: rgba(225, 29, 72, .14);
+            --jp-accent: #A85B00;
+            --jp-beacon: #E08800;
+            --jp-shadow: 0 2px 4px rgba(9, 30, 51, .06), 0 24px 50px -28px rgba(9, 30, 51, .45);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]):not([data-theme="dark"]) {
+                --jp-sky-1: #03070E;
+                --jp-sky-2: #071120;
+                --jp-sky-3: #0C1D33;
+                --jp-sky-4: #15304C;
+                --jp-haze: rgba(96, 160, 220, .22);
+                --jp-cloud: rgba(150, 190, 230, .10);
+                --jp-clouds-op: .5;
+                --jp-stars-op: 1;
+                --jp-contrail: rgba(190, 215, 240, .35);
+
+                --jp-ink: #EDF4FA;
+                --jp-muted: #9DB1C2;
+                --jp-glow: 0 1px 3px rgba(0, 0, 0, .55);
+                --jp-panel: rgba(12, 22, 33, .74);
+                --jp-panel-solid: #0E1B28;
+                --jp-line: rgba(160, 195, 225, .22);
+                --jp-line-soft: rgba(160, 195, 225, .12);
+                --jp-brand: #8FBEF2;
+                --jp-brand-soft: rgba(143, 190, 242, .22);
+                --jp-risk: #FB7185;
+                --jp-risk-soft: rgba(251, 113, 133, .2);
+                --jp-accent: #FFB300;
+                --jp-beacon: #FFB300;
+                --jp-shadow: 0 2px 4px rgba(0, 0, 0, .5), 0 28px 60px -30px rgba(0, 0, 0, .95);
+            }
+        }
+
+        [data-theme="dark"],
+        html.dark {
+            --jp-sky-1: #03070E;
+            --jp-sky-2: #071120;
+            --jp-sky-3: #0C1D33;
+            --jp-sky-4: #15304C;
+            --jp-haze: rgba(96, 160, 220, .22);
+            --jp-cloud: rgba(150, 190, 230, .10);
+            --jp-clouds-op: .5;
+            --jp-stars-op: 1;
+            --jp-contrail: rgba(190, 215, 240, .35);
+
+            --jp-ink: #EDF4FA;
+            --jp-muted: #9DB1C2;
+            --jp-glow: 0 1px 3px rgba(0, 0, 0, .55);
+            --jp-panel: rgba(12, 22, 33, .74);
+            --jp-panel-solid: #0E1B28;
+            --jp-line: rgba(160, 195, 225, .22);
+            --jp-line-soft: rgba(160, 195, 225, .12);
+            --jp-brand: #8FBEF2;
+            --jp-brand-soft: rgba(143, 190, 242, .22);
+            --jp-risk: #FB7185;
+            --jp-risk-soft: rgba(251, 113, 133, .2);
+            --jp-accent: #FFB300;
+            --jp-beacon: #FFB300;
+            --jp-shadow: 0 2px 4px rgba(0, 0, 0, .5), 0 28px 60px -30px rgba(0, 0, 0, .95);
+        }
+
+        * { box-sizing: border-box; }
+
+        body.jp-body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            color: var(--jp-ink);
+            background: var(--jp-sky-2);
+            font-family: "Noto Sans Thai", "Plus Jakarta Sans", system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* ================= sky ================= */
+        .jp-sky {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg,
+                    var(--jp-sky-1) 0%,
+                    var(--jp-sky-2) 34%,
+                    var(--jp-sky-3) 68%,
+                    var(--jp-sky-4) 100%);
+        }
+
+        .jp-stars {
+            position: absolute;
+            inset: 0;
+            opacity: var(--jp-stars-op);
+            background-image:
+                radial-gradient(1.4px 1.4px at 12% 18%, #fff, transparent),
+                radial-gradient(1.2px 1.2px at 27% 9%, #dfeaff, transparent),
+                radial-gradient(1.6px 1.6px at 41% 26%, #fff, transparent),
+                radial-gradient(1.1px 1.1px at 58% 12%, #cfe0ff, transparent),
+                radial-gradient(1.5px 1.5px at 71% 31%, #fff, transparent),
+                radial-gradient(1.2px 1.2px at 86% 16%, #e6efff, transparent),
+                radial-gradient(1.3px 1.3px at 94% 40%, #fff, transparent),
+                radial-gradient(1.1px 1.1px at 8% 44%, #d8e6ff, transparent),
+                radial-gradient(1.4px 1.4px at 34% 52%, #fff, transparent),
+                radial-gradient(1.1px 1.1px at 64% 47%, #e2ecff, transparent);
+            animation: jp-twinkle 6s ease-in-out infinite alternate;
+        }
+
+        .jp-clouds {
+            position: absolute;
+            inset: 0;
+            opacity: var(--jp-clouds-op);
+            background-repeat: repeat-x;
+            background-size: 1200px 100%;
+            background-image:
+                radial-gradient(140px 44px at 180px 70%, var(--jp-cloud), transparent 72%),
+                radial-gradient(190px 52px at 320px 74%, var(--jp-cloud), transparent 72%),
+                radial-gradient(110px 36px at 640px 62%, var(--jp-cloud), transparent 72%),
+                radial-gradient(220px 58px at 900px 78%, var(--jp-cloud), transparent 72%),
+                radial-gradient(150px 40px at 1080px 66%, var(--jp-cloud), transparent 72%);
+            animation: jp-drift 120s linear infinite;
+        }
+
+        .jp-clouds.far {
+            opacity: calc(var(--jp-clouds-op) * .5);
+            background-size: 820px 100%;
+            filter: blur(1px);
+            animation-duration: 210s;
+            animation-direction: reverse;
+        }
+
+        /* horizon haze near the bottom */
+        .jp-horizon {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 34%;
+            background: linear-gradient(180deg, transparent, var(--jp-haze));
+        }
+
+        /* a single aircraft crossing, contrail behind it */
+        .jp-contrail-wrap {
+            position: absolute;
+            top: 16%;
+            left: -30%;
+            width: 30%;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            animation: jp-cross 46s linear infinite;
+            animation-delay: 6s;
+        }
+
+        .jp-contrail-line {
+            flex: 1;
+            height: 1.5px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, var(--jp-contrail));
+        }
+
+        .jp-plane {
+            width: 15px;
+            height: 15px;
+            flex: none;
+            color: var(--jp-contrail);
+            transform: translateX(-1px);
+        }
+
+        /* ================= shell ================= */
+        .jp-shell {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 20px 20px 48px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .jp-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .jp-mark { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+        .jp-mark-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--jp-beacon);
+            flex: none;
+            box-shadow: 0 0 0 4px var(--jp-brand-soft);
+            animation: jp-blink 2.6s ease-in-out infinite;
+        }
+
+        /* app icon, front and centre */
+        .jp-logo-wrap {
+            position: relative;
+            width: fit-content;
+            margin: 2px auto 0;
+        }
+
+        .jp-logo-wrap::before {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            z-index: -1;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--jp-brand-soft), transparent 70%);
+            filter: blur(4px);
+            animation: jp-glow-pulse 3.6s ease-in-out infinite;
+        }
+
+        .jp-logo {
+            width: clamp(120px, 28vw, 168px);
+            aspect-ratio: 1;
+            margin: 0;
+            border-radius: 14.2%;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--jp-line-soft);
+            box-shadow: 0 22px 50px -16px rgba(9, 30, 51, .62), 0 0 0 1px rgba(255, 255, 255, .06) inset;
+            animation: jp-pop .6s .1s cubic-bezier(.2, .8, .3, 1.05) both;
+        }
+
+        .jp-logo img {
+            width: 102%;
+            height: 102%;
+            margin: -1%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .jp-mark-text {
+            font-family: "IBM Plex Mono", ui-monospace, monospace;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--jp-muted);
+            text-shadow: var(--jp-glow);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .landing-theme-toggle .theme-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            margin: 0;
+            border: 1px solid var(--jp-line);
+            border-radius: 999px;
+            background: var(--jp-panel);
+            -webkit-backdrop-filter: blur(14px) saturate(1.4);
+            backdrop-filter: blur(14px) saturate(1.4);
+            color: var(--jp-ink);
+            cursor: pointer;
+            transition: color .18s ease, border-color .18s ease, transform .18s ease;
+        }
+
+        .landing-theme-toggle .theme-toggle-btn:hover {
+            color: var(--jp-accent);
+            border-color: var(--jp-accent);
+        }
+
+        .landing-theme-toggle .theme-toggle-btn:active { transform: scale(.94); }
+
+        .landing-theme-toggle .theme-toggle-btn:focus-visible {
+            outline: 2px solid var(--jp-accent);
+            outline-offset: 3px;
+        }
+
+        .landing-theme-toggle .theme-toggle-btn svg { display: block; }
+
+        /* ================= top event ================= */
+        .jp-stage {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 36px 0 6px;
+        }
+
+        .jp-node {
+            width: 100%;
+            max-width: 580px;
+            padding: 0 8px 4px;
+            text-align: center;
+            animation: jp-rise .55s cubic-bezier(.2, .7, .3, 1) both;
+        }
+
+        .jp-title {
+            font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+            font-weight: 800;
+            font-size: clamp(28px, 6vw, 40px);
+            letter-spacing: -.03em;
+            line-height: 1.05;
+            margin: 18px 0 0;
+            text-shadow: var(--jp-glow);
+        }
+
+        .jp-title span { color: var(--jp-brand); }
+
+        .jp-slogan {
+            margin: 12px 0 0;
+            font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+            font-weight: 700;
+            font-size: clamp(14.5px, 2.8vw, 18px);
+            letter-spacing: .01em;
+            color: var(--jp-ink);
+            text-shadow: var(--jp-glow);
+        }
+
+        .jp-slogan-risk { color: var(--jp-risk); }
+        .jp-slogan-secure { color: var(--jp-brand); }
+
+        .jp-copy {
+            margin: 12px auto 0;
+            max-width: 44ch;
+            font-size: 14.5px;
+            line-height: 1.75;
+            color: var(--jp-muted);
+            text-shadow: var(--jp-glow);
+        }
+
+        /* ================= the tree ================= */
+        .jp-tree {
+            width: 100%;
+            max-width: 640px;
+            display: block;
+            overflow: visible;
+        }
+
+        .jp-tree .wire {
+            fill: none;
+            stroke: var(--jp-line);
+            stroke-width: 1.5;
+            stroke-linecap: square;
+            stroke-dasharray: 900;
+            stroke-dashoffset: 900;
+            animation: jp-draw 1.1s .3s ease-out forwards;
+            transition: stroke .18s ease;
+        }
+
+        .jp-tree .gate {
+            fill: var(--jp-panel-solid);
+            stroke: var(--jp-line);
+            stroke-width: 1.5;
+            stroke-linejoin: round;
+            opacity: 0;
+            animation: jp-fade .4s .85s ease-out forwards;
+            transition: stroke .18s ease;
+        }
+
+        .jp-tree .gate-label {
+            font-family: "IBM Plex Mono", ui-monospace, monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .1em;
+            fill: var(--jp-muted);
+            opacity: 0;
+            animation: jp-fade .4s 1s ease-out forwards;
+        }
+
+        .jp-tree .pulse {
+            fill: none;
+            stroke: var(--jp-beacon);
+            stroke-width: 2.4;
+            stroke-linecap: round;
+            stroke-dasharray: 5 235;
+            animation: jp-flow 4.6s 1.5s linear infinite;
+        }
+
+        .jp-tree .pulse.b { animation-delay: 3.8s; }
+
+        .jp-tree[data-lit="a"] #wireA,
+        .jp-tree[data-lit="b"] #wireB,
+        .jp-tree[data-lit] #wireOut { stroke: var(--jp-accent); }
+        .jp-tree[data-lit] .gate { stroke: var(--jp-accent); }
+
+        .jp-spine { display: none; }
+
+        /* ================= role cards ================= */
+        .role-grid {
+            width: 100%;
+            max-width: 640px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        button.role-card {
+            appearance: none;
+            text-align: left;
+            font: inherit;
+            color: inherit;
+            cursor: pointer;
+            background: var(--jp-panel);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            backdrop-filter: blur(16px) saturate(1.4);
+            border: 1px solid var(--jp-line);
+            border-radius: 14px;
+            padding: 20px 20px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: var(--jp-shadow);
+            transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+            animation: jp-rise .55s .6s cubic-bezier(.2, .7, .3, 1) both;
+        }
+
+        button.role-card:nth-of-type(2) { animation-delay: .72s; }
+
+        button.role-card:hover,
+        button.role-card:focus-visible {
+            transform: translateY(-4px);
+            border-color: var(--jp-accent);
+            outline: none;
+        }
+
+        button.role-card:focus-visible { outline: 2px solid var(--jp-accent); outline-offset: 3px; }
+        button.role-card:active { transform: translateY(-1px); }
+
+        .role-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .role-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--jp-line);
+            display: grid;
+            place-items: center;
+            color: var(--jp-brand);
+            background: var(--jp-brand-soft);
+            flex: none;
+            transition: color .18s ease, background .18s ease;
+        }
+
+        button.role-card:hover .role-card-icon,
+        button.role-card:focus-visible .role-card-icon {
+            color: var(--jp-accent);
+            background: transparent;
+        }
+
+        .role-card-icon svg { display: block; }
+
+        .jp-eyebrow {
+            font-family: "IBM Plex Mono", ui-monospace, monospace;
+            font-size: 9.5px;
+            font-weight: 600;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--jp-muted);
+            text-align: right;
+        }
+
+        .role-card-title {
+            font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+            font-weight: 700;
+            font-size: 19px;
+            letter-spacing: -.015em;
+            margin-bottom: 6px;
+        }
+
+        .role-card-sub {
+            margin: 0;
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: var(--jp-muted);
+        }
+
+        .jp-enter {
+            font-family: "IBM Plex Mono", ui-monospace, monospace;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: .12em;
+            color: var(--jp-accent);
+            opacity: 0;
+            transform: translateX(-4px);
+            transition: opacity .18s ease, transform .18s ease;
+        }
+
+        button.role-card:hover .jp-enter,
+        button.role-card:focus-visible .jp-enter { opacity: 1; transform: none; }
+
+        /* ================= chips ================= */
+        .trust-row {
+            margin-top: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            animation: jp-fade .6s .95s ease-out both;
+        }
+
+        .trust-chip {
+            font-family: "IBM Plex Mono", ui-monospace, monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--jp-muted);
+            background: var(--jp-panel);
+            border: 1px solid var(--jp-line-soft);
+            border-radius: 999px;
+            padding: 6px 12px;
+        }
+
+        /* ================= motion ================= */
+        @keyframes jp-rise {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes jp-fade { from { opacity: 0; } to { opacity: 1; } }
+
+        @keyframes jp-pop {
+            from { opacity: 0; transform: translateY(10px) scale(.9); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes jp-glow-pulse {
+            0%, 100% { opacity: .65; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.07); }
+        }
+
+        @keyframes jp-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .25; }
+        }
+        @keyframes jp-draw { to { stroke-dashoffset: 0; } }
+
+        @keyframes jp-flow {
+            0% { stroke-dashoffset: 0; opacity: 0; }
+            6% { opacity: .9; }
+            42% { opacity: .9; }
+            50%, 100% { stroke-dashoffset: -240; opacity: 0; }
+        }
+
+        @keyframes jp-drift {
+            from { background-position: 0 0; }
+            to { background-position: 1200px 0; }
+        }
+
+        @keyframes jp-twinkle {
+            from { opacity: calc(var(--jp-stars-op) * .55); }
+            to { opacity: var(--jp-stars-op); }
+        }
+
+        @keyframes jp-cross {
+            0% { transform: translateX(0); opacity: 0; }
+            8% { opacity: 1; }
+            88% { opacity: 1; }
+            100% { transform: translateX(460%); opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .jp-node, .jp-logo, button.role-card, .trust-row, .jp-tree .gate, .jp-tree .gate-label {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            .jp-tree .wire { animation: none; stroke-dashoffset: 0; }
+            .jp-tree .pulse, .jp-contrail-wrap { display: none; }
+            .jp-clouds, .jp-stars, .jp-mark-dot, .jp-logo-wrap::before { animation: none; }
+            button.role-card:hover { transform: none; }
+        }
+
+        /* ================= small screens ================= */
+        @media (max-width: 700px) {
+            .jp-shell { padding: 16px 16px 36px; }
+            .jp-stage { padding: 22px 0 4px; }
+            .jp-node { padding: 0 4px 2px; }
+            .jp-tree { max-width: 240px; }
+            .jp-legs { display: none; }
+            .jp-spine { display: block; }
+            .role-grid { grid-template-columns: 1fr; gap: 12px; }
+            button.role-card { padding: 18px; }
+            .trust-row { margin-top: 24px; }
+            .jp-contrail-wrap { width: 55%; }
+        }
+    </style>
 </head>
 
-<body>
+<body class="jp-body">
 
-    <div class="landing-wrap">
-
-        <div class="landing-logo">
-            <img src="logo-icon.png" alt="JorproA logo" style="width:100%;height:100%;object-fit:cover;">
+    <!-- sky -->
+    <div class="jp-sky" aria-hidden="true">
+        <div class="jp-stars"></div>
+        <div class="jp-clouds far"></div>
+        <div class="jp-clouds"></div>
+        <div class="jp-horizon"></div>
+        <div class="jp-contrail-wrap">
+            <div class="jp-contrail-line"></div>
+            <svg class="jp-plane" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 15.5v-1.6L13.4 9V3.7c0-.8-.6-1.5-1.4-1.5s-1.4.7-1.4 1.5V9L3 13.9v1.6l7.6-2.3v4.6l-2.1 1.5v1.2l3.5-1 3.5 1v-1.2l-2.1-1.5v-4.6l7.6 2.3z" />
+            </svg>
         </div>
+    </div>
 
-        <div class="landing-title">JorproA</div>
-        <p class="landing-copy">
-            ระบบวิเคราะห์ Fault Tree Analysis และประเมินความเสี่ยงด้านความปลอดภัยการบิน
-            เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ
-        </p>
+    <div class="landing-wrap jp-shell">
 
-        <div class="role-grid">
+        <header class="jp-topbar">
+            <div class="jp-mark">
+                <span class="jp-mark-dot" aria-hidden="true"></span>
+                <div class="jp-mark-text">Fault Tree Analysis &middot; Aviation Safety</div>
+            </div>
+            <div class="landing-theme-toggle" id="landingThemeToggle"></div>
+        </header>
 
-            <button id="safetyOfficerBtn" type="button" class="role-card">
-                <div class="role-card-icon" id="soIcon"></div>
-                <div>
-                    <div class="role-card-title">Safety Officer</div>
-                    <p class="role-card-sub">
-                        สร้างและจัดการการวิเคราะห์ Fault Tree ตั้งแต่ต้นจนถึงการส่งต่อผู้เชี่ยวชาญ
-                    </p>
+        <main class="jp-stage">
+
+            <section class="jp-node">
+                <div class="jp-logo-wrap">
+                    <div class="landing-logo jp-logo">
+                        <img src="logo-icon.png" alt="โลโก้ JorproA" width="168" height="168">
+                    </div>
                 </div>
-            </button>
+                <h1 class="landing-title jp-title">Jorpro<span>A</span></h1>
+                <p class="jp-slogan">See the <span class="jp-slogan-risk">Risk.</span> <span class="jp-slogan-secure">Secure the Flight.</span></p>
+                <p class="landing-copy jp-copy">
+                    ระบบวิเคราะห์ Fault Tree Analysis และประเมินความเสี่ยงด้านความปลอดภัยการบิน
+                    เลือกบทบาทของคุณเพื่อเข้าสู่ระบบ
+                </p>
+            </section>
 
-            <button id="expertBtn" type="button" class="role-card">
-                <div class="role-card-icon" id="exIcon"></div>
-                <div>
-                    <div class="role-card-title">Expert</div>
-                    <p class="role-card-sub">
-                        ตรวจสอบความเสี่ยงและยืนยันผลการตัดสินใจด้านความปลอดภัย
-                    </p>
-                </div>
-            </button>
+            <!-- OR gate feeding the two roles -->
+            <svg class="jp-tree" id="jpTree" viewBox="0 0 600 132" aria-hidden="true" focusable="false">
+                <path id="wireOut" class="wire" d="M300 2 V40" />
+                <path class="gate" d="M272 62 Q300 16 328 62 Q300 50 272 62 Z" />
+                <text class="gate-label" x="340" y="56">OR</text>
+                <g class="jp-legs">
+                    <path id="wireA" class="wire" d="M286 58 V80 H150 V132" />
+                    <path id="wireB" class="wire" d="M314 58 V80 H450 V132" />
+                    <path class="pulse" d="M150 132 V80 H286 V58" />
+                    <path class="pulse b" d="M450 132 V80 H314 V58" />
+                </g>
+                <path class="wire jp-spine" d="M300 58 V132" />
+            </svg>
 
-        </div>
+            <div class="role-grid">
 
-        <div class="trust-row">
-            <span class="trust-chip">Fault Tree Analysis</span>
-            <span class="trust-chip">FAA Risk Matrix</span>
-            <span class="trust-chip">Weighted Risk Scoring</span>
-        </div>
+                <button id="safetyOfficerBtn" type="button" class="role-card">
+                    <div class="role-card-head">
+                        <div class="role-card-icon" id="soIcon"></div>
+                        <div class="jp-eyebrow">Build &amp; analyze</div>
+                    </div>
+                    <div>
+                        <div class="role-card-title">Safety Officer</div>
+                        <p class="role-card-sub">
+                            สร้างและจัดการการวิเคราะห์ Fault Tree ตั้งแต่ต้นจนถึงการส่งต่อผู้เชี่ยวชาญ
+                        </p>
+                    </div>
+                    <div class="jp-enter">เข้าสู่ระบบ →</div>
+                </button>
+
+                <button id="expertBtn" type="button" class="role-card">
+                    <div class="role-card-head">
+                        <div class="role-card-icon" id="exIcon"></div>
+                        <div class="jp-eyebrow">Review &amp; approve</div>
+                    </div>
+                    <div>
+                        <div class="role-card-title">Expert</div>
+                        <p class="role-card-sub">
+                            ตรวจสอบความเสี่ยงและยืนยันผลการตัดสินใจด้านความปลอดภัย
+                        </p>
+                    </div>
+                    <div class="jp-enter">เข้าสู่ระบบ →</div>
+                </button>
+
+            </div>
+
+            <div class="trust-row">
+                <span class="trust-chip">Fault Tree Analysis</span>
+                <span class="trust-chip">FAA Risk Matrix</span>
+                <span class="trust-chip">ICAO Risk Ranking</span>
+            </div>
+
+        </main>
 
     </div>
 
@@ -66,6 +750,29 @@
     <script>
         document.getElementById("soIcon").innerHTML = Icon("shield", "", 22);
         document.getElementById("exIcon").innerHTML = Icon("check-circle", "", 22);
+    </script>
+
+    <script src="theme-toggle.js"></script>
+    <script>
+        ThemeToggle.mount(document.getElementById("landingThemeToggle"));
+    </script>
+
+    <!-- Light up the matching branch while a role is hovered or focused -->
+    <script>
+        (function () {
+            var tree = document.getElementById("jpTree");
+            var map = { safetyOfficerBtn: "a", expertBtn: "b" };
+            Object.keys(map).forEach(function (id) {
+                var el = document.getElementById(id);
+                if (!el || !tree) return;
+                var on = function () { tree.setAttribute("data-lit", map[id]); };
+                var off = function () { tree.removeAttribute("data-lit"); };
+                el.addEventListener("mouseenter", on);
+                el.addEventListener("mouseleave", off);
+                el.addEventListener("focus", on);
+                el.addEventListener("blur", off);
+            });
+        })();
     </script>
 
     <script src="notify.js"></script>

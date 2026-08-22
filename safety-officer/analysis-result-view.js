@@ -63,323 +63,81 @@ function escapeHtml(value) {
 
 
 // =====================================================
-// SAFETY OFFICER — WEIGHTED EUCLIDEAN RISK SCORING
+// SAFETY OFFICER — RISK MATRIX (Expert-sourced, read-only here)
 //
-// RI = sqrt( SEVERITY_WEIGHT * S^2 + LIKELIHOOD_WEIGHT * L^2 )
-//
-// L and S are taken exactly as scored by the Expert (never
-// re-derived or changed here). This is the criteria the Safety
-// Officer provided for scoring on this page — a proposed FTA
-// Tools banding, not an ICAO standard.
+// The old Weighted-Euclidean-Distance MCDM scoring
+// (RI = sqrt(0.70*S^2 + 0.30*L^2), 6-tier band table,
+// computeWeightedRiskIndex/getSoRiskBand/SO_RISK_BANDS/
+// getSoRiskBandClass/getSoRiskBandTextClass/getSoRiskBandColor/
+// buildWeightedRiskScoring) has been removed. Safety Officer no
+// longer computes a second, independent risk score — the
+// Expert's discrete FAA Risk Matrix result (likelihood, severity,
+// riskIndex, riskLevel — via window.RiskMatrix, see risk-matrix.js)
+// is the only Risk Index/Level shown on this page. Safety
+// Officer's role here is to REVIEW that result and add Safety
+// Mitigation, Risk Owner and Type of Hazard (see
+// renderSafetyControls() below), not to re-score it.
 // =====================================================
 
-const SO_SEVERITY_WEIGHT = 0.70;
-const SO_LIKELIHOOD_WEIGHT = 0.30;
-
-// Ordered highest RI band first.
-const SO_RISK_BANDS = [
-    { min: 4.41, max: 5.00, level: "Critical Risk", code: 5,
-      action: "ต้องหยุด/ระงับหรือแก้ไขความเสี่ยงทันที ก่อนดำเนินการต่อ" },
-    { min: 3.80, max: 4.40, level: "Very High Risk", code: 4,
-      action: "ต้องดำเนินมาตรการลดความเสี่ยงโดยเร่งด่วน" },
-    { min: 3.21, max: 3.79, level: "High Risk", code: 3,
-      action: "ต้องมีมาตรการควบคุมและติดตามอย่างเหมาะสม" },
-    { min: 2.61, max: 3.20, level: "Moderate Risk", code: 2,
-      action: "ยอมรับได้ภายใต้การควบคุมและควรพิจารณาปรับปรุงมาตรการ" },
-    { min: 2.01, max: 2.60, level: "Acceptable (Low Risk)", code: 1,
-      action: "ยอมรับได้และติดตามตามความเหมาะสม" },
-    { min: 1.41, max: 2.00, level: "No Special Risk", code: 0,
-      action: "ไม่มีความเสี่ยงพิเศษ ไม่จำเป็นต้องมีมาตรการเพิ่มเติมนอกเหนือจากการควบคุมปกติ" }
-];
-
-
-function computeWeightedRiskIndex(likelihood, severity) {
-
-    const L = Number(likelihood);
-    const S = Number(severity);
-
-    if (
-        !Number.isFinite(L) ||
-        !Number.isFinite(S) ||
-        L < 1 || L > 5 ||
-        S < 1 || S > 5
-    ) {
-
-        return null;
-
-    }
-
-    const value =
-        Math.sqrt(
-            SO_SEVERITY_WEIGHT * S * S +
-            SO_LIKELIHOOD_WEIGHT * L * L
-        );
-
-    return value;
-
-}
-
-
-function getSoRiskBand(ri) {
-
-    if (
-        ri === null ||
-        !Number.isFinite(ri)
-    ) {
-
-        return null;
-
-    }
-
-    // Clamp tiny floating point overshoot at the theoretical
-    // ends of the range (S=L=5 -> 5.00, S=L=1 -> 1.41).
-    const clamped =
-        Math.min(
-            5,
-            Math.max(
-                1.41,
-                ri
-            )
-        );
-
-    return (
-        SO_RISK_BANDS.find(
-            function(band) {
-
-                return (
-                    clamped >= band.min &&
-                    clamped <= band.max
-                );
-
-            }
-        ) || null
-    );
-
-}
-
-
-function getSoRiskBandClass(band) {
-
-    if (!band) {
-        return "bg-jorpro-canvas border border-jorpro-line text-jorpro-slate";
-    }
-
-    if (band.code >= 4) {
-        return "bg-jorpro-redDim border border-red-500/20 text-jorpro-red";
-    }
-
-    if (band.code === 3) {
-        return "bg-orange-50 border border-orange-200 text-orange-600";
-    }
-
-    if (band.code === 2) {
-        return "bg-amber-50 border border-amber-200 text-amber-600";
-    }
-
-    if (band.code === 1) {
-        return "bg-emerald-50 border border-emerald-200 text-emerald-600";
-    }
-
-    return "bg-jorpro-canvas border border-jorpro-line text-jorpro-slate";
-
-}
-
-
-// Text-only variant (no background/border) for solo stat values.
-function getSoRiskBandTextClass(band) {
-
-    if (!band) {
-        return "text-jorpro-slate";
-    }
-
-    if (band.code >= 4) {
-        return "text-jorpro-red";
-    }
-
-    if (band.code === 3) {
-        return "text-orange-600";
-    }
-
-    if (band.code === 2) {
-        return "text-amber-600";
-    }
-
-    if (band.code === 1) {
-        return "text-emerald-600";
-    }
-
-    return "text-jorpro-slate";
-
-}
-
-
-// Solid hex color per SO Risk Level code, for Chart.js series.
-function getSoRiskBandColor(code) {
-
-    const colors = {
-        5: "#C21F2E",
-        4: "#EA580C",
-        3: "#F59E0B",
-        2: "#FACC15",
-        1: "#34D399",
-        0: "#94A3B8"
-    };
-
-    return (
-        colors[code] ||
-        "#94A3B8"
-    );
-
-}
-
-
-// Builds the ranked Weighted Risk Scoring list for one Analysis:
-// Basic Events with usable L/S, sorted by RI desc, tie-broken by
-// Severity desc (per the Safety Officer's stated ranking rule).
-// Events the Expert has not yet scored are returned separately so
-// the UI can say what's missing instead of guessing a score.
-function buildWeightedRiskScoring(
-    analysis
-) {
+// Basic Events grouped by whether the Expert has saved a usable
+// (likelihood + severity) assessment for them yet — used by the
+// risk table's PENDING rows and the dashboard's "no assessment"
+// KPI tile. Each scored item carries RiskMatrix.recomputeIfMissing's
+// result so legacy records without a stored riskLevel still work.
+function getScoredAndMissing(analysis) {
 
     const events =
-        Array.isArray(
-            analysis?.ftaData?.basicEvents
-        )
+        Array.isArray(analysis?.ftaData?.basicEvents)
             ? analysis.ftaData.basicEvents
             : [];
 
     const assessments =
-        Array.isArray(
-            analysis?.riskAssessments
-        )
+        Array.isArray(analysis?.riskAssessments)
             ? analysis.riskAssessments
             : [];
 
     const riskMap =
         new Map(
-            assessments.map(
-                function(item) {
-
-                    return [
-                        String(
-                            item?.eventId ||
-                            ""
-                        ),
-                        item
-                    ];
-
-                }
-            )
+            assessments.map(function(item) {
+                return [String(item?.eventId || ""), item];
+            })
         );
 
     const scored = [];
     const missing = [];
 
-    events.forEach(
-        function(
-            event,
-            index
-        ) {
+    events.forEach(function(event, index) {
 
-            const eventId =
-                String(
-                    event?.id ||
-                    `E-${String(
-                        index + 1
-                    ).padStart(
-                        2,
-                        "0"
-                    )}`
-                );
+        const eventId =
+            String(event?.id || `E-${String(index + 1).padStart(2, "0")}`);
 
-            const item =
-                riskMap.get(
-                    eventId
-                ) ||
-                null;
+        const item = riskMap.get(eventId) || null;
+        const name = item?.eventName || event?.name || `Basic Event ${index + 1}`;
 
-            const name =
-                item?.eventName ||
-                event?.name ||
-                `Basic Event ${index + 1}`;
+        const computed =
+            window.RiskMatrix ? RiskMatrix.recomputeIfMissing(item) : { available: false };
 
-            if (
-                !item ||
-                !Number.isFinite(
-                    Number(item.likelihood)
-                ) ||
-                !Number.isFinite(
-                    Number(item.severity)
-                )
-            ) {
-
-                missing.push({
-                    eventId: eventId,
-                    name: name
-                });
-
-                return;
-
-            }
-
-            const ri =
-                computeWeightedRiskIndex(
-                    item.likelihood,
-                    item.severity
-                );
-
-            const band =
-                getSoRiskBand(
-                    ri
-                );
-
-            scored.push({
-                eventId: eventId,
-                name: name,
-                likelihood: Number(item.likelihood),
-                severity: Number(item.severity),
-                riskIndex: ri,
-                band: band
-            });
-
+        if (!item || !computed.available) {
+            missing.push({ eventId: eventId, name: name });
+            return;
         }
-    );
 
-    scored.sort(
-        function(a, b) {
+        scored.push({
+            eventId: eventId,
+            name: name,
+            likelihood: Number(item.likelihood),
+            severity: Number(item.severity),
+            riskIndex: computed.riskIndex,
+            riskLevel: computed.riskLevel
+        });
 
-            if (b.riskIndex !== a.riskIndex) {
-                return b.riskIndex - a.riskIndex;
-            }
+    });
 
-            // Tie-break: higher Severity takes priority first,
-            // then higher Likelihood.
-            if (b.severity !== a.severity) {
-                return b.severity - a.severity;
-            }
+    if (window.RiskMatrix) {
+        scored.sort(RiskMatrix.compareByRisk);
+    }
 
-            return b.likelihood - a.likelihood;
-
-        }
-    );
-
-    scored.forEach(
-        function(
-            item,
-            index
-        ) {
-
-            item.priority =
-                index + 1;
-
-        }
-    );
-
-    return {
-        scored: scored,
-        missing: missing
-    };
+    return { scored: scored, missing: missing };
 
 }
 
@@ -648,6 +406,17 @@ function render() {
     currentViewRecord =
         analysis;
 
+    // Mark this analysis as seen by Safety Officer, once. This is what
+    // clears the "new result from Expert" notification badge (shell.js's
+    // getPendingSoReviewRecords()) and the dashboard banner
+    // (safety-officer.html) for this specific record — opening this page
+    // for it is what counts as "reviewed", regardless of whether they
+    // arrived via the notification or navigated here manually.
+    if (analysis.status === "COMPLETED" && !analysis.soViewedAt) {
+        analysis.soViewedAt = new Date().toISOString();
+        saveSafetyControlsToRecords();
+    }
+
     setText(
         "analysisTitle",
         analysis.analysisTitle ||
@@ -715,10 +484,6 @@ function render() {
 
 
     renderRisk(
-        analysis
-    );
-
-    renderWeightedRiskScoring(
         analysis
     );
 
@@ -795,8 +560,8 @@ function renderRisk(
 
         badge.className =
             completed === total && total > 0
-                ? "px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-600"
-                : "px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-600";
+                ? "px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-xs font-bold text-emerald-600 dark:text-emerald-400"
+                : "px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-xs font-bold text-amber-600 dark:text-amber-400";
 
     }
 
@@ -810,39 +575,73 @@ function renderRisk(
 
         body.innerHTML = "";
 
-        events.forEach(
-            function(event, index) {
+        // Ranked HIGH -> MEDIUM -> LOW via RiskMatrix.compareByRisk.
+        // Events with no (or an unrecomputable) assessment sort after
+        // every ranked one, in their original order — RiskMatrix.
+        // recomputeIfMissing() covers legacy records saved before this
+        // page tracked riskLevel, so they still rank/display correctly
+        // instead of silently dropping to "no data".
+        const decorated =
+            events.map(function(event, index) {
 
                 const id =
-                    String(
-                        event?.id ||
-                        `E-${String(index + 1).padStart(2, "0")}`
-                    );
+                    String(event?.id || `E-${String(index + 1).padStart(2, "0")}`);
 
-                const item =
-                    map.get(id);
+                const item = map.get(id) || null;
+
+                const computed =
+                    window.RiskMatrix ? RiskMatrix.recomputeIfMissing(item) : { available: false };
+
+                return {
+                    event: event,
+                    index: index,
+                    item: item,
+                    riskIndex: computed.available ? computed.riskIndex : null,
+                    riskLevel: computed.available ? computed.riskLevel : null,
+                    available: computed.available
+                };
+
+            });
+
+        decorated.sort(function(a, b) {
+            if (a.available && b.available) {
+                return window.RiskMatrix ? RiskMatrix.compareByRisk(a, b) : 0;
+            }
+            if (a.available && !b.available) return -1;
+            if (!a.available && b.available) return 1;
+            return 0;
+        });
+
+        decorated.forEach(
+            function(entry, rankIndex) {
+
+                const event = entry.event;
+                const index = entry.index;
+                const item = entry.item;
+                const rank = String(rankIndex + 1).padStart(2, "0");
 
                 const row =
                     document.createElement("tr");
 
-                if (!item) {
+                if (!entry.available) {
 
                     row.className =
-                        "bg-amber-50 hover:bg-amber-100 transition-colors";
+                        "bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors";
 
                     row.innerHTML = `
-                        <td class="px-4 py-4 text-sm font-semibold text-jorpro-ink">
+                        <td class="px-4 py-4 text-xs text-jorpro-mute dark:text-jorpro-muteDark">${rank}</td>
+                        <td class="px-4 py-4 text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark">
                             ${escapeHtml(
                                 event?.name ||
                                 `Basic Event ${index + 1}`
                             )}
                         </td>
 
-                        <td colspan="6"
-                            class="px-4 py-4 text-xs font-semibold text-amber-600">
-                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200">
+                        <td colspan="4"
+                            class="px-4 py-4 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30">
                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
-                                PENDING — No Risk Assessment Saved
+                                ${item ? "Risk assessment unavailable" : "PENDING — No Risk Assessment Saved"}
                             </span>
                         </td>
                     `;
@@ -850,21 +649,19 @@ function renderRisk(
                 }
                 else {
 
-                    const level =
-                        String(
-                            item.riskLevel ||
-                            ""
-                        ).toUpperCase();
+                    const level = entry.riskLevel;
 
                     const levelStyle =
-                        level === "HIGH"
-                            ? "bg-jorpro-redDim border border-red-500/20 text-jorpro-red"
-                            : level === "MEDIUM"
-                                ? "bg-amber-50 border border-amber-200 text-amber-600"
-                                : level === "LOW"
-                                    ? "bg-emerald-50 border border-emerald-200 text-emerald-600"
-                                    : "bg-jorpro-canvas border border-jorpro-line text-jorpro-slate";
+                        window.RiskMatrix
+                            ? RiskMatrix.getRiskLevelClass(level)
+                            : "status-badge-slate";
 
+                    // Very low-alpha row tint by risk level — already reads
+                    // fine in both themes as-is (translucent overlay), no
+                    // dark: variant needed except the transparent/canvas
+                    // fallback, chained as dark:hover: so it only applies on
+                    // hover (a bare dark:bg-jorpro-canvasDark would apply
+                    // unconditionally in dark mode, not just on hover).
                     const rowTone =
                         level === "HIGH"
                             ? "bg-red-500/[0.025] hover:bg-red-500/[0.05]"
@@ -872,20 +669,21 @@ function renderRisk(
                                 ? "bg-amber-500/[0.02] hover:bg-amber-500/[0.04]"
                                 : level === "LOW"
                                     ? "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.04]"
-                                    : "bg-transparent hover:bg-jorpro-canvas";
+                                    : "bg-transparent hover:bg-jorpro-canvas dark:hover:bg-jorpro-canvasDark";
 
                     row.className =
                         `${rowTone} transition-colors`;
 
                     row.innerHTML = `
-                        <td class="px-4 py-4 text-sm font-semibold text-jorpro-ink">
+                        <td class="px-4 py-4 text-xs text-jorpro-mute dark:text-jorpro-muteDark">${rank}</td>
+                        <td class="px-4 py-4 text-sm font-semibold text-jorpro-ink dark:text-jorpro-inkDark">
                             ${escapeHtml(
                                 event?.name ||
                                 `Basic Event ${index + 1}`
                             )}
                         </td>
 
-                        <td class="px-4 py-4 text-xs text-jorpro-slate">
+                        <td class="px-4 py-4 text-xs text-jorpro-slate dark:text-jorpro-slateDark">
                             <span class="inline-flex px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-300 font-semibold">
                                 ${escapeHtml(
                                     `${item.likelihood ?? "-"} - ${item.likelihoodName || ""}`
@@ -893,7 +691,7 @@ function renderRisk(
                             </span>
                         </td>
 
-                        <td class="px-4 py-4 text-xs text-jorpro-slate">
+                        <td class="px-4 py-4 text-xs text-jorpro-slate dark:text-jorpro-slateDark">
                             <span class="inline-flex px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-300 font-semibold">
                                 ${escapeHtml(
                                     `${item.severityCode || ""} - ${item.severityName || ""}`
@@ -902,28 +700,14 @@ function renderRisk(
                         </td>
 
                         <td class="px-4 py-4 text-sm font-black">
-                            <span class="inline-flex min-w-[46px] justify-center px-2.5 py-1 rounded-lg bg-jorpro-blue/10 border border-jorpro-blue/20 text-jorpro-blueBright">
-                                ${escapeHtml(
-                                    item.riskIndex ||
-                                    item.referenceScore ||
-                                    "-"
-                                )}
+                            <span class="inline-flex min-w-[46px] justify-center px-2.5 py-1 rounded-lg bg-jorpro-blue/10 dark:bg-jorpro-blueDark/10 border border-jorpro-blue/20 dark:border-jorpro-blueDark/30 text-jorpro-blueBright dark:text-jorpro-blueBrightDark">
+                                ${escapeHtml(entry.riskIndex || "-")}
                             </span>
                         </td>
 
                         <td class="px-4 py-4 text-xs font-black">
-                            <span class="inline-flex px-3 py-1.5 rounded-full ${levelStyle}">
-                                ${escapeHtml(
-                                    item.riskLevel ||
-                                    "-"
-                                )}
-                            </span>
-                        </td>
-
-                        <td class="px-4 py-4 text-xs">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-jorpro-blue/10 border border-jorpro-blue/20 text-jorpro-blueBright font-bold">
-                                <span class="w-1.5 h-1.5 rounded-full bg-jorpro-blueBright"></span>
-                                SEE WEIGHTED SCORING ↓
+                            <span class="status-badge ${levelStyle}">
+                                ${escapeHtml(level || "-")}
                             </span>
                         </td>
                     `;
@@ -976,12 +760,12 @@ function renderRisk(
             "text-lg font-black block mt-1 " +
             (
                 highest === "HIGH"
-                    ? "text-jorpro-red"
+                    ? "text-jorpro-red dark:text-jorpro-redDark"
                     : highest === "MEDIUM"
-                        ? "text-amber-600"
+                        ? "text-amber-600 dark:text-amber-400"
                         : highest === "LOW"
-                            ? "text-emerald-600"
-                            : "text-jorpro-slate"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-jorpro-slate dark:text-jorpro-slateDark"
             );
 
     }
@@ -1015,8 +799,8 @@ function renderRisk(
             "text-lg font-black block mt-1 " +
             (
                 mitigationCount > 0
-                    ? "text-jorpro-red"
-                    : "text-emerald-600"
+                    ? "text-jorpro-red dark:text-jorpro-redDark"
+                    : "text-emerald-600 dark:text-emerald-400"
             );
 
     }
@@ -1061,12 +845,12 @@ function renderRisk(
             "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-black mt-1 border " +
             (
                 overall === "HIGH RISK"
-                    ? "bg-jorpro-redDim border-jorpro-red/25 text-jorpro-red"
+                    ? "bg-jorpro-redDim dark:bg-jorpro-redDimDark border-jorpro-red/25 dark:border-jorpro-redDark/30 text-jorpro-red dark:text-jorpro-redDark"
                     : overall === "MEDIUM RISK"
-                        ? "bg-amber-50 border-amber-200 text-amber-600"
+                        ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-400"
                         : overall === "LOW RISK"
-                            ? "bg-emerald-50 border-emerald-200 text-emerald-600"
-                            : "bg-jorpro-canvas border-jorpro-line text-jorpro-slate"
+                            ? "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                            : "bg-jorpro-canvas dark:bg-jorpro-canvasDark border-jorpro-line dark:border-jorpro-lineDark text-jorpro-slate dark:text-jorpro-slateDark"
             );
 
     }
@@ -1074,238 +858,104 @@ function renderRisk(
 }
 
 
-function renderWeightedRiskScoring(
-    analysis
-) {
+// Finds this Basic Event's entry in analysis.riskAssessments (created by
+// the Expert), or creates a minimal placeholder if the Expert hasn't
+// assessed it yet — Safety Officer must still be able to record
+// Mitigation/Owner/Hazard even for an event with no risk data (§22:
+// don't block/crash on missing data).
+function findOrCreateAssessment(analysis, eventId, eventName) {
 
-    const highestEl =
-        document.getElementById(
-            "soHighestRiskLevel"
-        );
-
-    const highCountEl =
-        document.getElementById(
-            "soHighPriorityCount"
-        );
-
-    const scoredCountEl =
-        document.getElementById(
-            "soScoredCount"
-        );
-
-    const tableBody =
-        document.getElementById(
-            "soRiskScoringTableBody"
-        );
-
-    if (!tableBody) {
-        return;
+    if (!Array.isArray(analysis.riskAssessments)) {
+        analysis.riskAssessments = [];
     }
 
-    const events =
-        Array.isArray(
-            analysis?.ftaData?.basicEvents
-        )
-            ? analysis.ftaData.basicEvents
-            : [];
+    let entry =
+        analysis.riskAssessments.find(function(item) {
+            return String(item?.eventId) === String(eventId);
+        });
 
-    const result =
-        buildWeightedRiskScoring(
-            analysis
+    if (!entry) {
+        entry = { eventId: String(eventId), eventName: eventName };
+        analysis.riskAssessments.push(entry);
+    }
+
+    return entry;
+
+}
+
+
+// Debounced persistence for Safety-Officer-entered fields — mirrors the
+// live-save pattern already used on fta-workspace.js. Writes the whole
+// updated record back into ftaAnalysisRecords (matched by id) plus the
+// same ftaAnalysisData mirror the rest of the app keeps in sync.
+let __soSaveTimer = null;
+
+function updateSafetyControlsStatus(message, isSaved) {
+
+    const el = document.getElementById("safetyControlsSavedBadge");
+    if (!el) return;
+
+    el.textContent = isSaved ? "● SAVED" : `● ${message}`;
+    el.className =
+        "px-3 py-2 rounded-xl border text-[10px] font-bold " +
+        (
+            isSaved
+                ? "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                : "bg-jorpro-canvas dark:bg-jorpro-canvasDark border-jorpro-line dark:border-jorpro-lineDark text-jorpro-mute dark:text-jorpro-muteDark"
         );
 
-    const scored =
-        result.scored;
+}
 
-    const missing =
-        result.missing;
+function saveSafetyControlsToRecords() {
 
+    if (!currentViewRecord?.id) return;
 
-    if (scoredCountEl) {
+    let records = [];
+    try {
+        records = JSON.parse(localStorage.getItem(RECORDS_KEY)) || [];
+    } catch (error) {
+        records = [];
+    }
+    if (!Array.isArray(records)) records = [];
 
-        scoredCountEl.textContent =
-            `${scored.length} / ${events.length}`;
+    const index =
+        records.findIndex(function(record) {
+            return String(record?.id) === String(currentViewRecord.id);
+        });
 
+    const updated = { ...currentViewRecord, updatedAt: new Date().toISOString() };
+
+    if (index >= 0) {
+        records[index] = { ...records[index], ...updated };
+    } else {
+        records.unshift(updated);
     }
 
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
 
-    let highestBand =
-        null;
-
-    scored.forEach(
-        function(item) {
-
-            if (
-                !highestBand ||
-                (item.band?.code || 0) >
-                    (highestBand.code || 0)
-            ) {
-
-                highestBand =
-                    item.band;
-
-            }
-
-        }
-    );
-
-    if (highestEl) {
-
-        highestEl.textContent =
-            highestBand
-                ? highestBand.level
-                : "-";
-
-        highestEl.className =
-            "text-lg font-black block mt-1 " +
-            getSoRiskBandTextClass(
-                highestBand
-            );
-
+    // Same "current working copy" mirror the rest of the app keeps —
+    // harmless to update even though this page never wrote it before.
+    try {
+        sessionStorage.setItem("ftaAnalysisData", JSON.stringify(updated));
+        localStorage.setItem("ftaAnalysisData", JSON.stringify(updated));
+    } catch (error) {
+        // Non-fatal — the canonical ftaAnalysisRecords write above already succeeded.
     }
 
+}
 
-    const highCount =
-        scored.filter(
-            function(item) {
+function updateSafetyControlField(analysis, eventId, eventName, field, value) {
 
-                return (
-                    item.band &&
-                    item.band.code >= 3
-                );
+    const entry = findOrCreateAssessment(analysis, eventId, eventName);
+    entry[field] = value;
 
-            }
-        ).length;
+    updateSafetyControlsStatus("SAVING...", false);
 
-    if (highCountEl) {
-
-        highCountEl.textContent =
-            String(
-                highCount
-            );
-
-        highCountEl.className =
-            "text-lg font-black block mt-1 " +
-            (
-                highCount > 0
-                    ? "text-jorpro-red"
-                    : "text-emerald-600"
-            );
-
-    }
-
-
-    tableBody.innerHTML = "";
-
-    if (
-        !scored.length &&
-        !missing.length
-    ) {
-
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="8" class="px-4 py-6 text-center text-xs text-jorpro-mute">
-                    No Basic Events found for this Analysis.
-                </td>
-            </tr>
-        `;
-
-        return;
-
-    }
-
-    scored.forEach(
-        function(item) {
-
-            const bandClass =
-                getSoRiskBandClass(
-                    item.band
-                );
-
-            const row =
-                document.createElement(
-                    "tr"
-                );
-
-            row.innerHTML = `
-                <td class="px-4 py-4 text-sm font-black text-jorpro-blueBright">
-                    #${item.priority}
-                </td>
-
-                <td class="px-4 py-4 text-sm font-semibold text-jorpro-ink">
-                    ${escapeHtml(item.name)}
-                </td>
-
-                <td class="px-4 py-4 text-xs text-jorpro-slate">
-                    ${escapeHtml(item.likelihood)}
-                </td>
-
-                <td class="px-4 py-4 text-xs text-jorpro-slate">
-                    ${escapeHtml(item.severity)}
-                </td>
-
-                <td class="px-4 py-4 text-[11px] text-jorpro-mute font-mono">
-                    0.70 / 0.30
-                </td>
-
-                <td class="px-4 py-4 text-sm">
-                    <div class="font-black text-jorpro-ink">
-                        ${item.riskIndex.toFixed(2)}
-                    </div>
-                    <div class="text-[10px] text-jorpro-mute font-mono mt-0.5">
-                        √(0.70×${item.severity}² + 0.30×${item.likelihood}²)
-                    </div>
-                </td>
-
-                <td class="px-4 py-4 text-xs">
-                    <span class="inline-flex px-3 py-1.5 rounded-full font-black ${bandClass}">
-                        ${escapeHtml(item.band ? `${item.band.level} (${item.band.code})` : "-")}
-                    </span>
-                </td>
-
-                <td class="px-4 py-4 text-xs text-jorpro-slate whitespace-pre-line max-w-[260px]">
-                    ${escapeHtml(item.band ? item.band.action : "-")}
-                </td>
-            `;
-
-            tableBody.appendChild(
-                row
-            );
-
-        }
-    );
-
-    missing.forEach(
-        function(item) {
-
-            const row =
-                document.createElement(
-                    "tr"
-                );
-
-            row.className =
-                "bg-amber-50";
-
-            row.innerHTML = `
-                <td class="px-4 py-4 text-xs text-amber-600 font-bold">
-                    —
-                </td>
-
-                <td class="px-4 py-4 text-sm font-semibold text-jorpro-ink">
-                    ${escapeHtml(item.name)}
-                </td>
-
-                <td colspan="6" class="px-4 py-4 text-xs font-semibold text-amber-600">
-                    ข้อมูลไม่เพียงพอ — รอ Expert ประเมิน Likelihood/Severity ก่อนจึงจะคำนวณ RI ได้
-                </td>
-            `;
-
-            tableBody.appendChild(
-                row
-            );
-
-        }
-    );
+    window.clearTimeout(__soSaveTimer);
+    __soSaveTimer = window.setTimeout(function() {
+        saveSafetyControlsToRecords();
+        updateSafetyControlsStatus("SAVED", true);
+    }, 250);
 
 }
 
@@ -1335,23 +985,6 @@ function renderSafetyControls(
             index
         ) {
 
-            const existingRiskControl =
-                event?.existingRiskControl ||
-                event?.riskControl ||
-                event?.existing_risk_control ||
-                "-";
-
-            const safetyMitigation =
-                event?.safetyMitigation ||
-                event?.safetyOfficerMitigation ||
-                event?.safety_mitigation ||
-                "-";
-
-            const riskOwner =
-                event?.riskOwner ||
-                event?.risk_owner ||
-                "-";
-
             const eventId =
                 event?.id ||
                 `E-${String(
@@ -1361,69 +994,95 @@ function renderSafetyControls(
                     "0"
                 )}`;
 
+            const eventName =
+                event?.name ||
+                `Basic Event ${index + 1}`;
+
+            const existingRiskControl =
+                event?.existingRiskControl ||
+                event?.riskControl ||
+                event?.existing_risk_control ||
+                "-";
+
+            const assessment =
+                analysis.riskAssessments.find(function(item) {
+                    return String(item?.eventId) === String(eventId);
+                }) || null;
+
+            // Legacy compat: older records saved these two on the Basic
+            // Event itself (before Mitigation/Owner moved to this page) —
+            // pre-fill from there once if this event's riskAssessments
+            // entry doesn't already have a value, without touching the
+            // old field.
+            const safetyMitigation =
+                assessment?.safetyMitigation ??
+                event?.safetyMitigation ??
+                event?.safetyOfficerMitigation ??
+                "";
+
+            const riskOwner =
+                assessment?.riskOwner ??
+                event?.riskOwner ??
+                "";
+
+            const typeOfHazard =
+                assessment?.typeOfHazard ??
+                "";
+
             const card =
                 document.createElement(
                     "div"
                 );
 
             card.className =
-                "rounded-xl border border-jorpro-line bg-jorpro-canvas p-4";
+                "rounded-xl border border-jorpro-line dark:border-jorpro-lineDark bg-jorpro-canvas dark:bg-jorpro-canvasDark p-4";
 
             card.innerHTML = `
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
 
                     <div>
-                        <div class="text-[10px] font-bold tracking-widest text-jorpro-blue">
+                        <div class="text-[10px] font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark">
                             ${escapeHtml(eventId)}
                         </div>
 
-                        <div class="text-sm font-bold text-jorpro-ink mt-1">
-                            ${escapeHtml(
-                                event?.name ||
-                                `Basic Event ${index + 1}`
-                            )}
+                        <div class="text-sm font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-1">
+                            ${escapeHtml(eventName)}
                         </div>
                     </div>
 
-                    <span class="text-[9px] font-bold tracking-widest uppercase text-jorpro-blue">
-                        SAFETY OFFICER SOURCE
+                    <span class="text-[9px] font-bold tracking-widest uppercase text-jorpro-blue dark:text-jorpro-blueDark">
+                        SAFETY OFFICER REVIEW
                     </span>
 
                 </div>
 
+                <div class="rounded-lg border border-jorpro-line dark:border-jorpro-lineDark bg-white dark:bg-jorpro-surfaceDark p-3 mb-3">
+                    <div class="text-[9px] font-bold tracking-widest text-jorpro-mute dark:text-jorpro-muteDark uppercase">
+                        Existing Risk Control
+                    </div>
+                    <div class="text-xs text-jorpro-slate dark:text-jorpro-slateDark mt-2 whitespace-pre-line break-words">
+                        ${escapeHtml(existingRiskControl)}
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 
-                    <div class="rounded-lg border border-jorpro-line bg-white p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-mute uppercase">
-                            Existing Risk Control (Identify)
-                        </div>
-                        <div class="text-xs text-jorpro-slate mt-2 whitespace-pre-line break-words">
-                            ${escapeHtml(
-                                existingRiskControl
-                            )}
-                        </div>
+                    <div class="ui-field" style="margin-bottom:0;">
+                        <label class="ui-label">Safety Mitigation (Identify)</label>
+                        <textarea class="ui-textarea so-mitigation-input" data-event-id="${escapeHtml(eventId)}" rows="3"
+                                  placeholder="Safety mitigation">${escapeHtml(safetyMitigation)}</textarea>
                     </div>
 
-                    <div class="rounded-lg border border-jorpro-blue/20 bg-jorpro-blue/5 p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-blue uppercase">
-                            Safety Mitigation (Identify)
-                        </div>
-                        <div class="text-xs text-jorpro-slate mt-2 whitespace-pre-line break-words">
-                            ${escapeHtml(
-                                safetyMitigation
-                            )}
-                        </div>
+                    <div class="ui-field" style="margin-bottom:0;">
+                        <label class="ui-label">Risk Owner</label>
+                        <input type="text" class="ui-input so-owner-input" data-event-id="${escapeHtml(eventId)}"
+                               value="${escapeHtml(riskOwner)}" placeholder="Risk owner">
                     </div>
 
-                    <div class="rounded-lg border border-jorpro-line bg-white p-3">
-                        <div class="text-[9px] font-bold tracking-widest text-jorpro-mute uppercase">
-                            Risk Owner
-                        </div>
-                        <div class="text-xs text-jorpro-slate mt-2 break-words">
-                            ${escapeHtml(
-                                riskOwner
-                            )}
-                        </div>
+                    <div class="ui-field" style="margin-bottom:0;">
+                        <label class="ui-label">Type of Hazard</label>
+                        <input type="text" class="ui-input so-hazard-input" data-event-id="${escapeHtml(eventId)}"
+                               value="${escapeHtml(typeOfHazard)}" placeholder="Type of hazard">
                     </div>
 
                 </div>
@@ -1437,6 +1096,29 @@ function renderSafetyControls(
     );
 
 }
+
+// Live-save the three Safety-Officer-editable fields — delegated to the
+// container (rebuilt on every render()) rather than bound per-input.
+document.addEventListener("input", function(event) {
+
+    const el = event.target;
+    const eventId = el.dataset ? el.dataset.eventId : null;
+    if (!eventId || !currentViewRecord) return;
+
+    const eventName =
+        (currentViewRecord.ftaData.basicEvents.find(function(e) {
+            return String(e?.id) === String(eventId);
+        }) || {}).name || eventId;
+
+    if (el.matches(".so-mitigation-input")) {
+        updateSafetyControlField(currentViewRecord, eventId, eventName, "safetyMitigation", el.value);
+    } else if (el.matches(".so-owner-input")) {
+        updateSafetyControlField(currentViewRecord, eventId, eventName, "riskOwner", el.value);
+    } else if (el.matches(".so-hazard-input")) {
+        updateSafetyControlField(currentViewRecord, eventId, eventName, "typeOfHazard", el.value);
+    }
+
+});
 
 
 document
@@ -1455,207 +1137,333 @@ document
 
 
 // =====================================================
-// EXPORT TO EXCEL — one row per Basic Event of this Analysis.
+// EXPORT TO EXCEL — "HAZARD IDENTIFICATION AND RISK ASSESSMENT
+// WORK SHEET", one row per Basic Event, plus a reference
+// "Risk Matrix" sheet. Built with ExcelJS (see the <script> tag
+// in analysis-result-view.html for why, over the already-present
+// SheetJS CDN).
+//
+// Consequence / Residual Risk (Probability, Severity, Risk
+// Level/Index) / Next Review have no backing field anywhere in
+// this app yet — those columns are always left blank rather than
+// guessed at (§21/§27.3/§27.8: never fabricate data). If those
+// fields are added to the data model later, this function already
+// has a place to read them from (see the comments at each one).
 // =====================================================
 
-function buildExportRows(
-    analysis
-) {
+const EXCEL_RISK_FILL = {
+    HIGH:   { argb: "FFFF0000" }, // red
+    MEDIUM: { argb: "FFFFC000" }, // amber/yellow
+    LOW:    { argb: "FF92D050" }  // green
+};
 
-    const rows = [];
+const EXCEL_RISK_FONT_COLOR = {
+    HIGH:   { argb: "FFFFFFFF" }, // white text on red
+    MEDIUM: { argb: "FF000000" },
+    LOW:    { argb: "FF000000" }
+};
 
-    if (!analysis) {
-        return rows;
-    }
+// Same event decoration + HIGH->MEDIUM->LOW ranking renderRisk() uses on
+// screen (including RiskMatrix.recomputeIfMissing() for legacy records),
+// rebuilt here so the exported "No." order and Risk Level/Color always
+// match what's currently on screen (§27.8).
+function buildHazardAssessmentRows(analysis) {
+
+    if (!analysis) return [];
 
     const events =
-        analysis.ftaData?.basicEvents ||
-        [];
+        Array.isArray(analysis.ftaData?.basicEvents)
+            ? analysis.ftaData.basicEvents
+            : [];
 
     const assessments =
-        Array.isArray(
-            analysis.riskAssessments
-        )
+        Array.isArray(analysis.riskAssessments)
             ? analysis.riskAssessments
             : [];
 
-    const riskMap =
+    const map =
         new Map(
-            assessments.map(
-                function(item) {
-
-                    return [
-                        String(
-                            item?.eventId ||
-                            ""
-                        ),
-                        item
-                    ];
-
-                }
-            )
+            assessments.map(function(item) {
+                return [String(item?.eventId || ""), item];
+            })
         );
 
-    // Priority / RI / SO Risk Level per Event, keyed by eventId,
-    // computed the same way as the on-screen Weighted Risk
-    // Scoring table so the export always matches what's shown.
-    const soResult =
-        buildWeightedRiskScoring(
-            analysis
-        );
-
-    const soMap =
-        new Map(
-            soResult.scored.map(
-                function(item) {
-
-                    return [
-                        item.eventId,
-                        item
-                    ];
-
-                }
-            )
-        );
-
-    events.forEach(
-        function(
-            event,
-            index
-        ) {
+    const decorated =
+        events.map(function(event, index) {
 
             const eventId =
-                String(
-                    event?.id ||
-                    `E-${String(
-                        index + 1
-                    ).padStart(
-                        2,
-                        "0"
-                    )}`
-                );
+                String(event?.id || `E-${String(index + 1).padStart(2, "0")}`);
 
-            const item =
-                riskMap.get(
-                    eventId
-                ) ||
-                null;
+            const item = map.get(eventId) || null;
 
-            const soItem =
-                soMap.get(
-                    eventId
-                ) ||
-                null;
+            const computed =
+                window.RiskMatrix ? RiskMatrix.recomputeIfMissing(item) : { available: false };
 
-            const control =
+            return {
+                event: event,
+                item: item,
+                index: index,
+                available: computed.available,
+                riskIndex: computed.available ? computed.riskIndex : null,
+                riskLevel: computed.available ? computed.riskLevel : null
+            };
+
+        });
+
+    decorated.sort(function(a, b) {
+        if (a.available && b.available) {
+            return window.RiskMatrix ? RiskMatrix.compareByRisk(a, b) : 0;
+        }
+        if (a.available && !b.available) return -1;
+        if (!a.available && b.available) return 1;
+        return 0;
+    });
+
+    return decorated.map(function(entry, rankIndex) {
+
+        const event = entry.event;
+        const item = entry.item;
+
+        return {
+            no: rankIndex + 1,
+
+            hazardIdentification:
+                item?.eventName || event?.name || `Basic Event ${entry.index + 1}`,
+
+            // No "Consequence" field exists anywhere in the data model —
+            // left blank on purpose (see the note above the fill colors).
+            consequence: "",
+
+            typeOfHazard: item?.typeOfHazard || "",
+
+            existingRiskControl:
                 event?.existingRiskControl ||
                 event?.riskControl ||
                 event?.existing_risk_control ||
-                "-";
+                "",
 
-            const mitigationSO =
-                event?.safetyMitigation ||
-                event?.safetyOfficerMitigation ||
-                event?.safety_mitigation ||
-                "-";
+            initialProbability: entry.available ? (item.likelihood ?? "") : "",
+            initialSeverity: entry.available ? (item.severityCode || "") : "",
+            initialRiskIndex: entry.available ? entry.riskIndex : "",
+            initialRiskLevel: entry.available ? entry.riskLevel : "",
 
-            const owner =
-                event?.riskOwner ||
-                event?.risk_owner ||
-                "-";
+            safetyMitigation: item?.safetyMitigation || "",
+            riskOwner: item?.riskOwner || "",
 
-            rows.push({
+            // Residual Risk isn't assessed anywhere in the app yet —
+            // left blank (§27.3: "ห้ามคำนวณหรือสร้างค่าปลอม").
+            residualProbability: "",
+            residualSeverity: "",
+            residualRiskIndex: "",
+            residualRiskLevel: "",
 
-                "Analysis Title":
-                    analysis.analysisTitle ||
-                    "Untitled Analysis",
+            // No "Next Review" field exists anywhere in the data model —
+            // left blank.
+            nextReview: ""
+        };
 
-                "Top Event":
-                    analysis.topEvent ||
-                    "-",
-
-                "Status":
-                    analysis.status ||
-                    "COMPLETED",
-
-                "Basic Event ID":
-                    eventId,
-
-                "Basic Event Name":
-                    item?.eventName ||
-                    event?.name ||
-                    `Basic Event ${index + 1}`,
-
-                "Likelihood":
-                    item
-                        ? (item.likelihood ?? "-")
-                        : "-",
-
-                "Likelihood Name":
-                    item?.likelihoodName ||
-                    "-",
-
-                "Severity":
-                    item
-                        ? (item.severity ?? "-")
-                        : "-",
-
-                "Severity Name":
-                    item?.severityName ||
-                    "-",
-
-                "Risk Index":
-                    item
-                        ? (item.riskIndex ?? item.referenceScore ?? "-")
-                        : "-",
-
-                "Initial Risk Level (Expert, FAA Matrix)":
-                    item?.riskLevel ||
-                    (item ? "-" : "PENDING"),
-
-                "SO Priority":
-                    soItem
-                        ? soItem.priority
-                        : "-",
-
-                "SO Weighted Risk Index (RI)":
-                    soItem
-                        ? Number(
-                            soItem.riskIndex.toFixed(2)
-                        )
-                        : "-",
-
-                "SO Risk Level":
-                    soItem?.band
-                        ? `${soItem.band.level} (${soItem.band.code})`
-                        : (
-                            item
-                                ? "INSUFFICIENT DATA"
-                                : "NOT YET ASSESSED BY EXPERT"
-                        ),
-
-                "SO Recommended Action":
-                    soItem?.band?.action ||
-                    "-",
-
-                "Existing Risk Control":
-                    control,
-
-                "Safety Mitigation (Safety Officer)":
-                    mitigationSO,
-
-                "Risk Owner":
-                    owner
-
-            });
-
-        }
-    );
-
-    return rows;
+    });
 
 }
 
+function sanitizeFilenamePart(value, fallback) {
+    const cleaned =
+        String(value || "")
+            .replace(/[\\/:*?"<>|]+/g, "_")
+            .replace(/\s+/g, "_")
+            .replace(/_+/g, "_")
+            .replace(/(^_+|_+$)/g, "")
+            .slice(0, 60);
+    return cleaned || fallback;
+}
+
+function formatExcelDate(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return "";
+    const pad = function(n) { return String(n).padStart(2, "0"); };
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+async function buildHazardWorkbook(analysis) {
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "JorproA — FTA TOOLS (ICAO)";
+    workbook.created = new Date();
+
+    const rows = buildHazardAssessmentRows(analysis);
+
+    // ---------------------------------------------------
+    // Sheet 1 — "Risk Assessment"
+    // ---------------------------------------------------
+    const sheet = workbook.addWorksheet("Risk Assessment", {
+        views: [{ state: "frozen", ySplit: 6 }] // freeze through the header row
+    });
+
+    const columns = [
+        { header: "No.", width: 6 },
+        { header: "Hazard Identification", width: 28 },
+        { header: "Consequence", width: 22 },
+        { header: "Type of Hazard", width: 18 },
+        { header: "Existing Risk Control (Identify)", width: 28 },
+        { header: "Initial Risk\nProbability", width: 12 },
+        { header: "Initial Risk\nSeverity", width: 12 },
+        { header: "Initial Risk\nRisk Level / Risk Index", width: 16 },
+        { header: "Safety Mitigation (Identify)", width: 28 },
+        { header: "Risk Owner", width: 18 },
+        { header: "Residual Risk\nProbability", width: 12 },
+        { header: "Residual Risk\nSeverity", width: 12 },
+        { header: "Residual Risk\nRisk Level / Risk Index", width: 16 },
+        { header: "Next Review", width: 16 }
+    ];
+
+    sheet.columns = columns.map(function(c) { return { width: c.width }; });
+
+    // --- Title block (rows 1-4, merged across all 14 columns) ---
+    const lastColLetter = sheet.getColumn(columns.length).letter;
+
+    sheet.mergeCells(`A1:${lastColLetter}1`);
+    sheet.getCell("A1").value = "HAZARD IDENTIFICATION AND RISK ASSESSMENT WORK SHEET";
+    sheet.getCell("A1").font = { bold: true, size: 14 };
+    sheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
+
+    sheet.mergeCells(`A2:${lastColLetter}2`);
+    sheet.getCell("A2").value =
+        `Title of Risk Assessment: ${analysis?.analysisTitle || "-"}`;
+    sheet.getCell("A2").font = { bold: true };
+
+    sheet.mergeCells(`A3:${lastColLetter}3`);
+    sheet.getCell("A3").value =
+        `Date: ${formatExcelDate(analysis?.completedAt || analysis?.analysisDate || analysis?.createdAt) || "-"}`;
+
+    sheet.mergeCells(`A4:${lastColLetter}4`);
+    // Only real, already-tracked names go here (Safety Officer's) — this
+    // app doesn't record a specific Expert's name anywhere, so it's never
+    // invented (§27.1: pull from real Analysis data, never hard-code).
+    sheet.getCell("A4").value =
+        `Risk Assessment Participants: ${analysis?.officerName || "-"}`;
+
+    sheet.getRow(5).height = 6; // thin spacer row
+
+    // --- Header row (row 6) ---
+    const headerRowNumber = 6;
+    const headerRow = sheet.getRow(headerRowNumber);
+    headerRow.values = columns.map(function(c) { return c.header; });
+    headerRow.eachCell(function(cell) {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+        cell.border = {
+            top: { style: "thin" }, left: { style: "thin" },
+            bottom: { style: "thin" }, right: { style: "thin" }
+        };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE2E8F0" } };
+    });
+    headerRow.height = 30;
+
+    // --- Data rows ---
+    rows.forEach(function(r) {
+
+        const row = sheet.addRow([
+            r.no,
+            r.hazardIdentification,
+            r.consequence,
+            r.typeOfHazard,
+            r.existingRiskControl,
+            r.initialProbability,
+            r.initialSeverity,
+            r.initialRiskIndex,
+            r.safetyMitigation,
+            r.riskOwner,
+            r.residualProbability,
+            r.residualSeverity,
+            r.residualRiskIndex,
+            r.nextReview
+        ]);
+
+        row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+            cell.border = {
+                top: { style: "thin" }, left: { style: "thin" },
+                bottom: { style: "thin" }, right: { style: "thin" }
+            };
+            cell.alignment = { vertical: "top", wrapText: true };
+            // Long free-text columns read better left-aligned; short
+            // coded columns (No./Probability/Severity/Risk Level) read
+            // better centered.
+            if ([1, 6, 7, 8].indexOf(colNumber) !== -1) {
+                cell.alignment.horizontal = "center";
+            }
+        });
+
+        // Color the Initial Risk Level/Index cell (col 8) by HIGH/MEDIUM/LOW
+        // — the one place §27.4 requires a risk color, "ไม่ต้องใช้สีอื่นแทน".
+        if (r.initialRiskLevel && EXCEL_RISK_FILL[r.initialRiskLevel]) {
+            const cell = row.getCell(8);
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: EXCEL_RISK_FILL[r.initialRiskLevel] };
+            cell.font = { bold: true, color: EXCEL_RISK_FONT_COLOR[r.initialRiskLevel] };
+        }
+
+    });
+
+    // ---------------------------------------------------
+    // Sheet 2 — "Risk Matrix" (static ICAO reference table, computed
+    // live from window.RiskMatrix so it can never drift from the actual
+    // logic the app uses — not a separately hand-typed copy).
+    // ---------------------------------------------------
+    const matrixSheet = workbook.addWorksheet("Risk Matrix");
+    matrixSheet.columns = [{ width: 12 }, { width: 10 }, { width: 10 }, { width: 10 }, { width: 10 }, { width: 10 }];
+
+    matrixSheet.mergeCells("A1:F1");
+    matrixSheet.getCell("A1").value = "FAA RISK MATRIX (Likelihood x Severity)";
+    matrixSheet.getCell("A1").font = { bold: true, size: 13 };
+    matrixSheet.getCell("A1").alignment = { horizontal: "center" };
+
+    const severityCols = ["A", "B", "C", "D", "E"];
+    const matrixHeaderRow = matrixSheet.getRow(3);
+    matrixHeaderRow.values = ["Likelihood"].concat(severityCols);
+    matrixHeaderRow.eachCell(function(cell) {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: "center" };
+        cell.border = {
+            top: { style: "thin" }, left: { style: "thin" },
+            bottom: { style: "thin" }, right: { style: "thin" }
+        };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE2E8F0" } };
+    });
+
+    if (window.RiskMatrix) {
+        [5, 4, 3, 2, 1].forEach(function(likelihood, i) {
+
+            const row = matrixSheet.getRow(4 + i);
+            row.getCell(1).value = likelihood;
+            row.getCell(1).font = { bold: true };
+            row.getCell(1).alignment = { horizontal: "center" };
+
+            [5, 4, 3, 2, 1].forEach(function(severityValue, j) {
+
+                const level = RiskMatrix.getRiskLevel(likelihood, severityValue);
+                const index = RiskMatrix.getRiskIndex(likelihood, severityValue);
+                const cell = row.getCell(2 + j);
+
+                cell.value = index;
+                cell.alignment = { horizontal: "center" };
+                cell.border = {
+                    top: { style: "thin" }, left: { style: "thin" },
+                    bottom: { style: "thin" }, right: { style: "thin" }
+                };
+
+                if (level && EXCEL_RISK_FILL[level]) {
+                    cell.fill = { type: "pattern", pattern: "solid", fgColor: EXCEL_RISK_FILL[level] };
+                    cell.font = { bold: true, color: EXCEL_RISK_FONT_COLOR[level] };
+                }
+
+            });
+
+        });
+    }
+
+    return workbook;
+
+}
 
 const exportExcelBtn =
     document.getElementById(
@@ -1666,12 +1474,9 @@ if (exportExcelBtn) {
 
     exportExcelBtn.addEventListener(
         "click",
-        function() {
+        async function() {
 
-            if (
-                typeof XLSX ===
-                "undefined"
-            ) {
+            if (typeof ExcelJS === "undefined") {
 
                 Notify.error(
                     "ไม่สามารถโหลดไลบรารี Excel ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่"
@@ -1681,13 +1486,21 @@ if (exportExcelBtn) {
 
             }
 
+            if (!currentViewRecord) {
 
-            const rows =
-                buildExportRows(
-                    currentViewRecord
+                Notify.error(
+                    "ไม่พบผลการวิเคราะห์ให้ Export"
                 );
 
-            if (!rows.length) {
+                return;
+
+            }
+
+            const hasBasicEvents =
+                Array.isArray(currentViewRecord.ftaData?.basicEvents) &&
+                currentViewRecord.ftaData.basicEvents.length > 0;
+
+            if (!hasBasicEvents) {
 
                 Notify.error(
                     "ไม่มีข้อมูล Basic Events ให้ Export"
@@ -1697,91 +1510,36 @@ if (exportExcelBtn) {
 
             }
 
+            try {
 
-            const worksheet =
-                XLSX.utils.json_to_sheet(
-                    rows
+                const workbook = await buildHazardWorkbook(currentViewRecord);
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], {
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                });
+
+                const stamp = formatExcelDate(new Date());
+                const safeTitle = sanitizeFilenamePart(currentViewRecord.analysisTitle, "Analysis");
+                const filename = `FTA_Risk_Assessment_${safeTitle}_${stamp}.xlsx`;
+
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+            } catch (error) {
+
+                console.error("Excel export failed:", error);
+
+                Notify.error(
+                    "ไม่สามารถสร้างไฟล์ Excel ได้ กรุณาลองใหม่อีกครั้ง"
                 );
 
-            worksheet["!cols"] =
-                Object.keys(
-                    rows[0]
-                ).map(
-                    function(key) {
-
-                        const longText =
-                            /Control|Mitigation|Title|Name|Action|Risk Level/.test(
-                                key
-                            );
-
-                        return {
-                            wch:
-                                longText
-                                    ? 32
-                                    : 18
-                        };
-
-                    }
-                );
-
-
-            const workbook =
-                XLSX.utils.book_new();
-
-            XLSX.utils.book_append_sheet(
-                workbook,
-                worksheet,
-                "Basic Events"
-            );
-
-
-            const stamp =
-                new Date();
-
-            const pad =
-                function(n) {
-                    return String(
-                        n
-                    ).padStart(
-                        2,
-                        "0"
-                    );
-                };
-
-            const safeTitle =
-                String(
-                    currentViewRecord?.analysisTitle ||
-                    "Analysis"
-                )
-                    .replace(
-                        /[^a-z0-9]+/gi,
-                        "-"
-                    )
-                    .replace(
-                        /(^-+|-+$)/g,
-                        ""
-                    )
-                    .slice(
-                        0,
-                        40
-                    ) ||
-                "Analysis";
-
-            const filename =
-                `JorproA-SO-${safeTitle}-${stamp.getFullYear()}${pad(
-                    stamp.getMonth() + 1
-                )}${pad(
-                    stamp.getDate()
-                )}-${pad(
-                    stamp.getHours()
-                )}${pad(
-                    stamp.getMinutes()
-                )}.xlsx`;
-
-            XLSX.writeFile(
-                workbook,
-                filename
-            );
+            }
 
         }
     );
@@ -1790,12 +1548,11 @@ if (exportExcelBtn) {
 
 
 // =====================================================
-// RISK DASHBOARD — Chart.js visual summary (bar / doughnut /
-// bubble), built from the same buildWeightedRiskScoring() data
-// as the table and the Excel export, so all three always agree.
+// RISK DASHBOARD — Chart.js visual summary (doughnut / bubble),
+// built from the same getScoredAndMissing() data as the risk
+// table and the Excel export, so all three always agree.
 // =====================================================
 
-let dashboardBarChart = null;
 let dashboardDoughnutChart = null;
 let dashboardScatterChart = null;
 
@@ -1803,7 +1560,6 @@ let dashboardScatterChart = null;
 function destroyDashboardCharts() {
 
     [
-        dashboardBarChart,
         dashboardDoughnutChart,
         dashboardScatterChart
     ].forEach(
@@ -1816,7 +1572,6 @@ function destroyDashboardCharts() {
         }
     );
 
-    dashboardBarChart = null;
     dashboardDoughnutChart = null;
     dashboardScatterChart = null;
 
@@ -1834,7 +1589,7 @@ function renderDashboardCharts(
     );
 
     const result =
-        buildWeightedRiskScoring(
+        getScoredAndMissing(
             analysis
         );
 
@@ -1877,6 +1632,27 @@ function renderDashboardCharts(
         );
     }
 
+    // Chart.js bakes plain color strings into its config at creation
+    // time — read theme.css's current tokens live (not cached) so
+    // grid lines / borders / legend text match whichever theme is
+    // active right now, in sync with RiskMatrix.getRiskColorVar().
+    const chartTheme =
+        getComputedStyle(
+            document.documentElement
+        );
+
+    const themeGrid =
+        chartTheme.getPropertyValue("--border").trim();
+
+    const themeSurface =
+        chartTheme.getPropertyValue("--surface").trim();
+
+    const themeInk =
+        chartTheme.getPropertyValue("--ink").trim();
+
+    const themeMuted =
+        chartTheme.getPropertyValue("--muted").trim();
+
     if (
         typeof Chart ===
         "undefined"
@@ -1902,20 +1678,25 @@ function renderDashboardCharts(
     // KPIs
     // -------------------------------------------------
 
-    let highestBand =
+    let highestLevel =
         null;
 
     scored.forEach(
         function(item) {
 
             if (
-                !highestBand ||
-                (item.band?.code || 0) >
-                    (highestBand.code || 0)
+                !window.RiskMatrix
+            ) {
+                return;
+            }
+
+            if (
+                !highestLevel ||
+                RiskMatrix.compareByRisk(item, { riskLevel: highestLevel }) < 0
             ) {
 
-                highestBand =
-                    item.band;
+                highestLevel =
+                    item.riskLevel;
 
             }
 
@@ -1925,20 +1706,9 @@ function renderDashboardCharts(
     const highCount =
         scored.filter(
             function(item) {
-                return (
-                    item.band &&
-                    item.band.code >= 3
-                );
+                return item.riskLevel === "HIGH";
             }
         ).length;
-
-    const avgRi =
-        scored.reduce(
-            function(sum, item) {
-                return sum + item.riskIndex;
-            },
-            0
-        ) / scored.length;
 
     setText(
         "kpiScoredCount",
@@ -1947,7 +1717,7 @@ function renderDashboardCharts(
 
     setText(
         "kpiHighestRisk",
-        highestBand?.level ||
+        highestLevel ||
         "-"
     );
 
@@ -1958,93 +1728,14 @@ function renderDashboardCharts(
 
     setText(
         "kpiAvgRi",
-        avgRi.toFixed(2)
+        String(result.missing.length)
     );
 
 
     // -------------------------------------------------
-    // Bar chart — Risk Index per Basic Event, ranked, colored
-    // by SO Risk Level band.
-    // -------------------------------------------------
-
-    const barCanvas =
-        document.getElementById(
-            "dashboardBarChart"
-        );
-
-    if (barCanvas) {
-
-        dashboardBarChart = new Chart(
-            barCanvas,
-            {
-                type: "bar",
-                data: {
-                    labels: scored.map(
-                        function(item) {
-                            return item.name;
-                        }
-                    ),
-                    datasets: [{
-                        label: "Risk Index (RI)",
-                        data: scored.map(
-                            function(item) {
-                                return Number(
-                                    item.riskIndex.toFixed(2)
-                                );
-                            }
-                        ),
-                        backgroundColor: scored.map(
-                            function(item) {
-                                return getSoRiskBandColor(
-                                    item.band?.code
-                                );
-                            }
-                        ),
-                        borderRadius: 6,
-                        maxBarThickness: 36
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: "y",
-                    scales: {
-                        x: {
-                            min: 0,
-                            max: 5,
-                            grid: { color: "#E2E7EF" },
-                            title: { display: true, text: "Risk Index (RI)" }
-                        },
-                        y: {
-                            grid: { display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: function(context) {
-
-                                    const item =
-                                        scored[context.dataIndex];
-
-                                    return item?.band
-                                        ? `${item.band.level} (code ${item.band.code})`
-                                        : "";
-
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        );
-
-    }
-
-
-    // -------------------------------------------------
-    // Doughnut chart — count of Events per SO Risk Level.
+    // Doughnut chart — count of Events per Risk Level
+    // (HIGH / MEDIUM / LOW, via RiskMatrix — no more 6-tier
+    // weighted band).
     // -------------------------------------------------
 
     const doughnutCanvas =
@@ -2052,38 +1743,20 @@ function renderDashboardCharts(
             "dashboardDoughnutChart"
         );
 
-    if (doughnutCanvas) {
+    if (doughnutCanvas && window.RiskMatrix) {
 
         const levelOrder =
-            [5, 4, 3, 2, 1, 0];
+            ["HIGH", "MEDIUM", "LOW"];
 
         const counts =
             levelOrder.map(
-                function(code) {
+                function(level) {
 
                     return scored.filter(
                         function(item) {
-                            return (
-                                item.band?.code === code
-                            );
+                            return item.riskLevel === level;
                         }
                     ).length;
-
-                }
-            );
-
-        const labels =
-            levelOrder.map(
-                function(code) {
-
-                    const match =
-                        SO_RISK_BANDS.find(
-                            function(band) {
-                                return band.code === code;
-                            }
-                        );
-
-                    return match?.level || String(code);
 
                 }
             );
@@ -2094,21 +1767,13 @@ function renderDashboardCharts(
         const filteredColors = [];
 
         levelOrder.forEach(
-            function(code, index) {
+            function(level, index) {
 
                 if (counts[index] > 0) {
 
-                    filteredLabels.push(
-                        labels[index]
-                    );
-
-                    filteredCounts.push(
-                        counts[index]
-                    );
-
-                    filteredColors.push(
-                        getSoRiskBandColor(code)
-                    );
+                    filteredLabels.push(level);
+                    filteredCounts.push(counts[index]);
+                    filteredColors.push(RiskMatrix.getRiskColorVar(level));
 
                 }
 
@@ -2124,7 +1789,7 @@ function renderDashboardCharts(
                     datasets: [{
                         data: filteredCounts,
                         backgroundColor: filteredColors,
-                        borderColor: "#FFFFFF",
+                        borderColor: themeSurface,
                         borderWidth: 2
                     }]
                 },
@@ -2135,7 +1800,7 @@ function renderDashboardCharts(
                     plugins: {
                         legend: {
                             position: "bottom",
-                            labels: { boxWidth: 10, font: { size: 10 } }
+                            labels: { boxWidth: 10, font: { size: 10 }, color: themeInk }
                         }
                     }
                 }
@@ -2146,8 +1811,10 @@ function renderDashboardCharts(
 
 
     // -------------------------------------------------
-    // Bubble chart — Likelihood (x) vs Severity (y), bubble
-    // radius scaled by Risk Index.
+    // Bubble chart — Likelihood (x) vs Severity (y). Radius is
+    // fixed per risk level (not a continuous score — Risk Index
+    // is now a matrix cell like "5A", not a number) so higher-risk
+    // points still stand out visually.
     // -------------------------------------------------
 
     const scatterCanvas =
@@ -2155,7 +1822,9 @@ function renderDashboardCharts(
             "dashboardScatterChart"
         );
 
-    if (scatterCanvas) {
+    const bubbleRadius = { HIGH: 14, MEDIUM: 10, LOW: 7 };
+
+    if (scatterCanvas && window.RiskMatrix) {
 
         dashboardScatterChart = new Chart(
             scatterCanvas,
@@ -2170,10 +1839,10 @@ function renderDashboardCharts(
                                 return {
                                     x: item.likelihood,
                                     y: item.severity,
-                                    r: 6 + item.riskIndex * 3,
+                                    r: bubbleRadius[item.riskLevel] || 8,
                                     name: item.name,
-                                    ri: item.riskIndex,
-                                    band: item.band
+                                    riskIndex: item.riskIndex,
+                                    riskLevel: item.riskLevel
                                 };
 
                             }
@@ -2181,18 +1850,14 @@ function renderDashboardCharts(
                         backgroundColor: scored.map(
                             function(item) {
 
-                                return getSoRiskBandColor(
-                                    item.band?.code
-                                ) + "B3";
+                                return RiskMatrix.getRiskColorVar(item.riskLevel) + "B3";
 
                             }
                         ),
                         borderColor: scored.map(
                             function(item) {
 
-                                return getSoRiskBandColor(
-                                    item.band?.code
-                                );
+                                return RiskMatrix.getRiskColorVar(item.riskLevel);
 
                             }
                         ),
@@ -2206,16 +1871,16 @@ function renderDashboardCharts(
                         x: {
                             min: 0,
                             max: 6,
-                            ticks: { stepSize: 1 },
-                            grid: { color: "#E2E7EF" },
-                            title: { display: true, text: "Likelihood (L)" }
+                            ticks: { stepSize: 1, color: themeMuted },
+                            grid: { color: themeGrid },
+                            title: { display: true, text: "Likelihood (L)", color: themeInk }
                         },
                         y: {
                             min: 0,
                             max: 6,
-                            ticks: { stepSize: 1 },
-                            grid: { color: "#E2E7EF" },
-                            title: { display: true, text: "Severity (S)" }
+                            ticks: { stepSize: 1, color: themeMuted },
+                            grid: { color: themeGrid },
+                            title: { display: true, text: "Severity (S)", color: themeInk }
                         }
                     },
                     plugins: {
@@ -2229,8 +1894,8 @@ function renderDashboardCharts(
 
                                     return [
                                         raw.name,
-                                        `L=${raw.x}  S=${raw.y}  RI=${raw.ri.toFixed(2)}`,
-                                        raw.band?.level || ""
+                                        `L=${raw.x}  S=${raw.y}  Risk Index=${raw.riskIndex}`,
+                                        raw.riskLevel || ""
                                     ];
 
                                 }
@@ -2355,6 +2020,30 @@ document.addEventListener(
         ) {
 
             closeDashboard();
+
+        }
+
+    }
+);
+
+
+// The dashboard's charts bake resolved var(--x) hex colors into their
+// Chart.js datasets at creation time, so an already-open chart won't
+// recolor itself just because [data-theme] changed. Redraw it when
+// the toggle fires, but only if the dashboard is actually open.
+document.addEventListener(
+    "themechange",
+    function() {
+
+        if (
+            dashboardModalEl &&
+            !dashboardModalEl.classList.contains("hidden") &&
+            currentViewRecord
+        ) {
+
+            renderDashboardCharts(
+                currentViewRecord
+            );
 
         }
 

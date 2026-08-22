@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>FTA Analysis - Expert | JorproA</title>
     <link rel="icon" type="image/png" href="../logo-icon.png">
 
@@ -12,15 +13,28 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // darkMode: 'class' + the *Dark color set below is driven by the
+        // same `dark` class on <html> that theme-toggle.js already toggles
+        // for theme.css's [data-theme] branch (see ThemeToggle.apply in
+        // theme-toggle.js) — both systems flip together from one click.
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
                         jorpro: {
-                            ink: '#0F172A', slate: '#475569', mute: '#94A3B8',
-                            canvas: '#F8FAFC', surface: '#FFFFFF', line: '#E2E8F0',
-                            blue: '#4F46E5', blueMid: '#4338CA', blueBright: '#6366F1',
-                            red: '#E11D48', redDim: '#FFF1F2', redLight: '#FDA4AF',
+                            ink: '#0F172A', inkDark: '#F1F5F9',
+                            slate: '#475569', slateDark: '#CBD5E1',
+                            mute: '#94A3B8', muteDark: '#64748B',
+                            canvas: '#F8FAFC', canvasDark: '#0B1220',
+                            surface: '#FFFFFF', surfaceDark: '#131B2C',
+                            line: '#E2E8F0', lineDark: '#293548',
+                            blue: '#4F46E5', blueDark: '#818CF8',
+                            blueMid: '#4338CA', blueMidDark: '#A5B4FC',
+                            blueBright: '#6366F1', blueBrightDark: '#818CF8',
+                            red: '#E11D48', redDark: '#FB7185',
+                            redDim: '#FFF1F2', redDimDark: 'rgba(251,113,133,0.14)',
+                            redLight: '#FDA4AF', redLightDark: '#FB7185',
                         }
                     },
                     fontFamily: {
@@ -33,6 +47,7 @@
         }
     </script>
 
+    <script src="../theme-boot.js"></script>
     <link rel="stylesheet" href="../theme.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -56,10 +71,10 @@
 
     <div style="display:flex;flex-direction:column;gap:18px;">
 
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 md:p-8 shadow-sm">
-            <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">EXPERT STEP · FTA ANALYSIS</span>
-            <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink mt-1">Fault Tree Analysis</h2>
-            <p class="text-sm text-jorpro-mute mt-2">Analyze the Fault Tree submitted by the Safety Officer.</p>
+        <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 md:p-8 shadow-sm">
+            <span class="text-[10px] font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark uppercase">EXPERT STEP · FTA ANALYSIS</span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-jorpro-ink dark:text-jorpro-inkDark mt-1">Fault Tree Analysis</h2>
+            <p class="text-sm text-jorpro-mute dark:text-jorpro-muteDark mt-2">Analyze the Fault Tree submitted by the Safety Officer.</p>
             <div class="ui-note" style="margin-top:16px;">
                 <span id="icoInfo"></span>
                 <p style="margin:0;">
@@ -71,35 +86,35 @@
         </section>
 
         <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">ANALYSIS TITLE</span>
-                <div id="analysisTitle" class="text-base font-bold text-jorpro-ink mt-2 break-words">-</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute dark:text-jorpro-muteDark font-bold">ANALYSIS TITLE</span>
+                <div id="analysisTitle" class="text-base font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-2 break-words">-</div>
             </div>
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">TOP EVENT</span>
-                <div id="topEvent" class="text-base font-bold text-jorpro-blueBright mt-2 break-words">-</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute dark:text-jorpro-muteDark font-bold">TOP EVENT</span>
+                <div id="topEvent" class="text-base font-bold text-jorpro-blueBright dark:text-jorpro-blueBrightDark mt-2 break-words">-</div>
             </div>
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">DEPARTMENT / AREA</span>
-                <div id="department" class="text-sm text-jorpro-slate mt-2">-</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute dark:text-jorpro-muteDark font-bold">DEPARTMENT / AREA</span>
+                <div id="department" class="text-sm text-jorpro-slate dark:text-jorpro-slateDark mt-2">-</div>
             </div>
-            <div class="bg-white border border-jorpro-line rounded-2xl p-5">
-                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute font-bold">SOURCE</span>
-                <div class="text-sm text-jorpro-slate mt-2">Safety Officer</div>
+            <div class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-5">
+                <span class="text-[10px] uppercase tracking-widest text-jorpro-mute dark:text-jorpro-muteDark font-bold">SOURCE</span>
+                <div class="text-sm text-jorpro-slate dark:text-jorpro-slateDark mt-2">Safety Officer</div>
             </div>
         </section>
 
-        <section class="bg-white border border-jorpro-line rounded-2xl p-6 shadow-sm">
+        <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-line dark:border-jorpro-lineDark rounded-2xl p-6 shadow-sm">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                    <div class="text-[10px] uppercase tracking-widest text-jorpro-blue font-bold">FAULT TREE</div>
-                    <div class="mt-1 text-lg font-bold text-jorpro-ink">TOP EVENT: <span id="treeTopEvent">-</span></div>
+                    <div class="text-[10px] uppercase tracking-widest text-jorpro-blue dark:text-jorpro-blueDark font-bold">FAULT TREE</div>
+                    <div class="mt-1 text-lg font-bold text-jorpro-ink dark:text-jorpro-inkDark">TOP EVENT: <span id="treeTopEvent">-</span></div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <div class="px-4 py-2 rounded-xl bg-jorpro-blue/5 border border-jorpro-line text-xs font-bold text-jorpro-blue">
+                    <div class="px-4 py-2 rounded-xl bg-jorpro-blue/5 dark:bg-jorpro-blueDark/10 border border-jorpro-line dark:border-jorpro-lineDark text-xs font-bold text-jorpro-blue dark:text-jorpro-blueDark">
                         GATE: <span id="gateDisplay">OR</span>
                     </div>
-                    <div id="analysisStructureStatus" class="px-4 py-2 rounded-xl bg-jorpro-canvas border border-jorpro-line text-xs font-bold text-jorpro-slate">
+                    <div id="analysisStructureStatus" class="px-4 py-2 rounded-xl bg-jorpro-canvas dark:bg-jorpro-canvasDark border border-jorpro-line dark:border-jorpro-lineDark text-xs font-bold text-jorpro-slate dark:text-jorpro-slateDark">
                         Loading...
                     </div>
                 </div>
@@ -107,14 +122,14 @@
             <div id="treeGate" class="hidden">OR</div>
         </section>
 
-        <section class="bg-white border border-jorpro-blue/20 rounded-2xl p-6 md:p-8 shadow-sm">
+        <section class="bg-white dark:bg-jorpro-surfaceDark border border-jorpro-blue/20 dark:border-jorpro-blueDark/30 rounded-2xl p-6 md:p-8 shadow-sm">
             <div class="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                    <span class="text-[10px] font-bold tracking-widest text-jorpro-blue uppercase">SAFETY OFFICER SOURCE DATA</span>
-                    <h3 class="text-lg font-bold text-jorpro-ink mt-1">Basic Events</h3>
-                    <p class="text-xs text-jorpro-mute mt-1">ข้อมูล Basic Event, Existing Risk Control, Safety Mitigation และ Risk Owner ที่ได้รับจาก Safety Officer</p>
+                    <span class="text-[10px] font-bold tracking-widest text-jorpro-blue dark:text-jorpro-blueDark uppercase">SAFETY OFFICER SOURCE DATA</span>
+                    <h3 class="text-lg font-bold text-jorpro-ink dark:text-jorpro-inkDark mt-1">Basic Events</h3>
+                    <p class="text-xs text-jorpro-mute dark:text-jorpro-muteDark mt-1">ข้อมูล Basic Event และ Existing Risk Control ที่ได้รับจาก Safety Officer</p>
                 </div>
-                <span id="safetyControlEventCount" class="text-xs font-bold text-jorpro-blue">0 EVENTS</span>
+                <span id="safetyControlEventCount" class="text-xs font-bold text-jorpro-blue dark:text-jorpro-blueDark">0 EVENTS</span>
             </div>
             <div id="safetyOfficerEventControls" style="margin-top:18px;"></div>
         </section>
@@ -133,6 +148,7 @@
 
     <script src="../icons.js"></script>
     <script src="../notify.js"></script>
+    <script src="../theme-toggle.js"></script>
     <script src="../shell.js"></script>
     <script>
         Shell.mount({ role: "expert", active: "queue", title: "FTA Analysis" });
